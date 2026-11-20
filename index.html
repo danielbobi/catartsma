@@ -642,7 +642,7 @@ function renderEnt() {
   $('entTable').innerHTML = `<tr>${E.cols.map(c => `<th>${t(c[1])}</th>`).join('')}${showOwner ? `<th>${t('artist')}</th>` : ''}<th>${t('nworks')}</th><th></th></tr>` +
     rows.map(r => `<tr>${E.cols.map(([c]) => `<td>${esc(c === 'kind' ? t('k_' + r[c]) : (c.endsWith('_date') ? fmtDate(r[c]) : r[c]))}</td>`).join('')}
       ${showOwner ? `<td>${esc(r.artist_id ? artistName(r.artist_id) : t('groupshow'))}</td>` : ''}
-      <td>${E.countBy(r)}</td><td style="white-space:nowrap"><button data-edit="${r.id}">${t('edit')}</button> <button data-show="${r.id}">${t('show')}</button></td></tr>`).join('');
+      <td>${E.countBy(r)}</td><td style="white-space:nowrap">${(isAdmin || !E.owner || r.artist_id === myArtist?.id) ? `<button data-edit="${r.id}">${t('edit')}</button> ` : ''}<button data-show="${r.id}">${t('show')}</button></td></tr>`).join('');
   renderEntForm();
 }
 function renderEntForm() {
