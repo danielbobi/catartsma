@@ -169,7 +169,13 @@
     <label data-t="notes"></label><textarea id="eNotes" rows="3"></textarea>
     <label data-t="photos"></label>
     <div class="thumbs" id="eThumbs"></div>
-    <input id="eFiles" type="file" accept="image/*" multiple style="margin-top:8px">
+    <div class="thumbs" id="ePending"></div>
+    <div class="toolbar" style="margin-top:8px">
+      <button type="button" id="btnCam">📷 <span data-t="takephoto"></span></button>
+      <button type="button" id="btnPick">🖼 <span data-t="choosephotos"></span></button>
+    </div>
+    <input id="eCam" type="file" accept="image/*" capture="environment" class="hidden">
+    <input id="eFiles" type="file" accept="image/*" multiple class="hidden">
     <div id="eHistWrap" class="hidden"><h3 data-t="history"></h3><ul class="hist" id="eHist"></ul></div>
     <div id="eMsg" class="msg hidden"></div>
     <div class="toolbar" style="margin-top:14px">
@@ -216,7 +222,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const T = {
   es: { email:'Correo', password:'Contraseña', signin:'Entrar', signup:'Crear cuenta', logout:'Salir', artists:'Artistas', import:'Importar',
-    works_t:'Obras', pickworks:'Obras en esta exposición', pickall:'Todas / ninguna', exhibitions:'Exposiciones', places:'Lugares', clients:'Clientes',
+    works_t:'Obras', takephoto:'Tomar foto', choosephotos:'Elegir fotos', newphoto:'nueva', pickworks:'Obras en esta exposición', pickall:'Todas / ninguna', exhibitions:'Exposiciones', places:'Lugares', clients:'Clientes',
     new:'+ Nueva obra', selectall:'Seleccionar todo', clearsel:'Quitar selección', printcards:'Fichas', printcoas:'Certificados', pricelist:'Lista de precios',
     artist:'Artista', title:'Título', year:'Año', code:'Código', technique:'Técnica', support:'Soporte',
     height:'Alto (cm)', width:'Ancho (cm)', depth:'Fondo (cm)', fheight:'Alto con marco (cm)', fwidth:'Ancho con marco (cm)', fdepth:'Fondo con marco (cm)',
@@ -239,7 +245,7 @@ const T = {
     importfiles:'Fotos', importrun:'Importar', importdone:'Listo: {n} obras importadas.', importexists:'Este artista ya tiene obras; no se importó nada.',
     inches:'Pulgadas', unique:'Única' },
   en: { email:'Email', password:'Password', signin:'Sign in', signup:'Create account', logout:'Sign out', artists:'Artists', import:'Import',
-    works_t:'Works', pickworks:'Works in this exhibition', pickall:'All / none', exhibitions:'Exhibitions', places:'Places', clients:'Clients',
+    works_t:'Works', takephoto:'Take photo', choosephotos:'Choose photos', newphoto:'new', pickworks:'Works in this exhibition', pickall:'All / none', exhibitions:'Exhibitions', places:'Places', clients:'Clients',
     new:'+ New work', selectall:'Select all', clearsel:'Clear', printcards:'Cards', printcoas:'Certificates', pricelist:'Price list',
     artist:'Artist', title:'Title', year:'Year', code:'Code', technique:'Technique', support:'Support',
     height:'Height (cm)', width:'Width (cm)', depth:'Depth (cm)', fheight:'Framed height (cm)', fwidth:'Framed width (cm)', fdepth:'Framed depth (cm)',
@@ -314,7 +320,7 @@ async function uploadPhotos(work, files, startSort = 0) {
 
 let me = null, isAdmin = false, myArtist = null;
 let artists = [], places = [], clients = [], exhibitions = [], works = [];
-let selected = new Set(), editing = null, fOwner = null;
+let selected = new Set(), editing = null, fOwner = null, pending = [];
 let curEnt = null, entEditing = null;
 
 async function boot() {
@@ -451,7 +457,7 @@ async function openEdit(w) {
   v('eFH', w?.framed_height_cm); v('eFW', w?.framed_width_cm); v('eFD', w?.framed_depth_cm);
   v('eSig', w?.signature); v('ePrice', w?.price_usd); $('eStatus').value = w?.status || 'available';
   v('eCons', w?.date_consigned); v('eSold', w?.sold_date); v('eSale', w?.sale_price_usd); v('eNotes', w?.notes);
-  $('eFiles').value = '';
+  $('eFiles').value = ''; $('eCam').value = ''; pending = []; renderPending();
   fillWorkSelects(w);
   ['btnDel','btnOneCard','btnOneCoa'].forEach(b => $(b).classList.toggle('hidden', !w));
   msg($('eMsg'), ''); updInches(); renderThumbs();
@@ -468,6 +474,10 @@ function updInches() {
   const d = [$('eH').value, $('eW').value, $('eD').value].filter(v => v !== '').map(Number);
   $('eInches').textContent = d.length ? `${t('inches')}: ${d.map(inch).join(' x ')} in` : '';
 }
+function renderPending() {
+  $('ePending').innerHTML = pending.map((f, i) => `<div><img src="${f.url}"><button data-pend="${i}">✕</button></div>`).join('');
+}
+function addPending(files) { for (const f of files) pending.push({ file: f, url: URL.createObjectURL(f) }); renderPending(); }
 function renderThumbs() {
   const ps = editing?.photos || [];
   $('eThumbs').innerHTML = ps.map(p => `<div><img src="${photoUrl(p.path)}"><button data-pid="${p.id}">✕</button></div>`).join('');
@@ -496,8 +506,9 @@ async function saveWork() {
     const add = want.filter(x => !had.includes(x)), del = had.filter(x => !want.includes(x));
     if (add.length) { const a = await sb.from('exhibition_works').insert(add.map(e => ({ exhibition_id: e, work_id: w.id }))); if (a.error) throw a.error; }
     for (const e of del) await sb.from('exhibition_works').delete().eq('exhibition_id', e).eq('work_id', w.id);
-    const files = [...$('eFiles').files];
+    const files = pending.map(p => p.file);
     if (files.length) await uploadPhotos(w, files, (editing?.photos?.length || 0));
+    pending = [];
     await loadWorks(); goWorks();
   } catch (e) { msg($('eMsg'), e.message || String(e), true); }
   finally { $('btnSave').disabled = false; }
@@ -763,6 +774,11 @@ $('btnOneCard').onclick = () => editing && printCards([editing]);
 $('btnOneCoa').onclick = () => editing && printCoas([editing]);
 $('eArtist').onchange = () => fillWorkSelects(editing);
 $('eH').oninput = $('eW').oninput = $('eD').oninput = updInches;
+$('btnCam').onclick = () => $('eCam').click();
+$('btnPick').onclick = () => $('eFiles').click();
+$('eCam').onchange = e => { addPending([...e.target.files]); e.target.value = ''; };
+$('eFiles').onchange = e => { addPending([...e.target.files]); e.target.value = ''; };
+$('ePending').onclick = e => { const i = e.target.dataset?.pend; if (i != null) { URL.revokeObjectURL(pending[i].url); pending.splice(+i, 1); renderPending(); } };
 $('eThumbs').onclick = e => { const id = e.target.dataset?.pid; if (id) deletePhoto(id); };
 ['fArtist','fStatus','fPlace','fExh'].forEach(id => $(id).onchange = renderList);
 $('fText').oninput = renderList;
