@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1f1f1f">
+<title>Catartsma</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root { --ink:#1f1f1f; --muted:#6b6b6b; --line:#e3e1dc; --bg:#faf9f6; --card:#fff; --accent:#8a5a2b; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:15px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; color:var(--ink); background:var(--bg); }
+  header { position:sticky; top:0; z-index:5; background:var(--ink); color:#fff; padding:8px 12px; display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+  header h1 { font-size:17px; margin:0 8px 0 0; letter-spacing:.5px; }
+  header .sp { flex:1; }
+  header button { background:transparent; color:#fff; border:1px solid #555; padding:6px 10px; }
+  header button.cur { background:#fff; color:var(--ink); }
+  button { font:inherit; padding:8px 12px; border-radius:8px; border:1px solid var(--line); background:#fff; cursor:pointer; }
+  button.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+  button.danger { color:#b00020; border-color:#e6b8bf; }
+  button:disabled { opacity:.5; }
+  main { padding:14px; max-width:1100px; margin:0 auto; }
+  input, select, textarea { font:inherit; width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:8px; background:#fff; }
+  input[type=checkbox] { width:auto; }
+  label { display:block; font-size:13px; color:var(--muted); margin:10px 0 4px; }
+  .row { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; }
+  .toolbar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:10px; }
+  .toolbar select, .toolbar input { width:auto; min-width:120px; flex:1; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; }
+  .work { background:var(--card); border:1px solid var(--line); border-radius:10px; overflow:hidden; cursor:pointer; position:relative; }
+  .work.on { outline:3px solid var(--accent); }
+  .work img, .work .noimg { width:100%; aspect-ratio:1; object-fit:contain; background:#f1efea; display:block; }
+  .work .noimg { display:flex; align-items:center; justify-content:center; color:var(--muted); }
+  .work .info { padding:8px 10px; font-size:13px; }
+  .work .t { font-weight:600; font-size:14px; }
+  .work .sel { position:absolute; top:8px; left:8px; width:26px; height:26px; accent-color:var(--accent); cursor:pointer; }
+  .badge { display:inline-block; padding:1px 7px; border-radius:10px; font-size:11px; background:#eee; }
+  .b-available{background:#e3f1e5;color:#1d6b2c} .b-reserved{background:#fff1d6;color:#8a5a00} .b-sold{background:#f6dcdc;color:#9b1c1c} .b-loan{background:#e1e9f7;color:#244c8a}
+  .panel { background:#fff; border:1px solid var(--line); border-radius:12px; padding:14px; max-width:760px; margin:0 auto 14px; }
+  .bulk { background:#fff7ec; border:1px solid #ecd3ad; border-radius:10px; padding:10px; margin-bottom:12px; }
+  .thumbs { display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; }
+  .thumbs div { position:relative; } .thumbs img { width:90px; height:90px; object-fit:cover; border-radius:6px; border:1px solid var(--line); }
+  .thumbs button { position:absolute; top:2px; right:2px; padding:0 6px; font-size:12px; }
+  .muted { color:var(--muted); font-size:13px; }
+  .msg { padding:10px; border-radius:8px; background:#fff6e5; border:1px solid #f0d9a8; margin:10px 0; }
+  .err { background:#fdecee; border-color:#f3bcc4; }
+  .hidden { display:none !important; }
+  table { width:100%; border-collapse:collapse; font-size:14px; } td, th { border-bottom:1px solid var(--line); padding:6px; text-align:left; vertical-align:top; }
+  th { font-size:12px; color:var(--muted); font-weight:600; }
+  h2 { font-size:18px; margin:4px 0 10px; } h3 { font-size:15px; margin:16px 0 6px; }
+  .count { font-size:13px; color:var(--muted); }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; }
+  .chips label { display:flex; gap:6px; align-items:center; margin:0; padding:5px 9px; border:1px solid var(--line); border-radius:16px; color:var(--ink); font-size:13px; }
+  .chip { display:inline-flex; gap:6px; align-items:center; background:#efe7dc; border-radius:14px; padding:3px 10px; font-size:13px; }
+  .chip button { border:0; background:none; padding:0 2px; }
+  .pick { display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:8px; max-height:420px; overflow:auto; padding:4px; border:1px solid var(--line); border-radius:8px; }
+  .pick label { display:block; margin:0; position:relative; border:1px solid var(--line); border-radius:8px; overflow:hidden; color:var(--ink); font-size:12px; cursor:pointer; background:#fff; }
+  .pick label.on { outline:3px solid var(--accent); }
+  .pick img, .pick .noimg { width:100%; aspect-ratio:1; object-fit:contain; background:#f1efea; display:block; }
+  .pick input { position:absolute; top:5px; left:5px; width:20px; height:20px; accent-color:var(--accent); }
+  .pick span { display:block; padding:4px 6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .hist li { font-size:13px; color:var(--muted); }
+</style>
+</head>
+<body>
+<header id="hdr" class="hidden">
+  <h1>Catartsma</h1>
+  <button data-nav="works" data-t="works_t"></button>
+  <button data-nav="exhibitions" data-t="exhibitions"></button>
+  <button data-nav="places" data-t="places"></button>
+  <button data-nav="clients" data-t="clients"></button>
+  <button data-nav="artists" data-t="artists" class="adm hidden"></button>
+  <button data-nav="import" data-t="import" class="adm hidden"></button>
+  <span class="sp"></span>
+  <button id="btnLang"></button>
+  <button id="btnOut" data-t="logout"></button>
+</header>
+
+<main>
+  <section id="vLogin" class="panel hidden" style="max-width:380px;margin-top:40px">
+    <h2>Catartsma</h2>
+    <label data-t="email"></label><input id="lEmail" type="email" autocomplete="username">
+    <label data-t="password"></label><input id="lPass" type="password" autocomplete="current-password">
+    <div class="toolbar" style="margin-top:14px">
+      <button class="primary" id="btnLogin" data-t="signin"></button>
+      <button id="btnSignup" data-t="signup"></button>
+      <button id="btnLang2"></button>
+    </div>
+    <div id="lMsg" class="msg hidden"></div>
+  </section>
+
+  <section id="vNoLink" class="panel hidden"><p data-t="notlinked"></p></section>
+
+  <section id="vList" class="hidden">
+    <div class="toolbar">
+      <button class="primary" id="btnNew" data-t="new"></button>
+      <select id="fArtist" class="hidden"></select>
+      <select id="fStatus"></select>
+      <select id="fPlace"></select>
+      <select id="fExh"></select>
+      <input id="fText" type="search">
+    </div>
+    <div class="toolbar" id="fOwnerBox"></div>
+    <div class="toolbar">
+      <span class="count" id="count"></span>
+      <button id="btnSelAll" data-t="selectall"></button>
+      <button id="btnSelClear" data-t="clearsel"></button>
+      <button id="btnCards"></button>
+      <button id="btnCoas"></button>
+      <button id="btnList"></button>
+    </div>
+    <div class="bulk hidden" id="bulkBox">
+      <b id="bulkHead"></b>
+      <div class="row">
+        <div><label data-t="setplace"></label><select id="bPlace"></select></div>
+        <div><label data-t="setstatus"></label><select id="bStatus"></select></div>
+        <div><label data-t="addexh"></label><select id="bExh"></select></div>
+      </div>
+      <div class="toolbar" style="margin-top:10px;margin-bottom:0">
+        <button class="primary" id="btnBulk" data-t="apply"></button>
+        <span id="bMsg" class="muted"></span>
+      </div>
+    </div>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <section id="vEdit" class="panel hidden">
+    <h2 id="eHead"></h2>
+    <div id="eArtistWrap"><label data-t="artist"></label><select id="eArtist"></select></div>
+    <label data-t="title"></label><input id="eTitle">
+    <div class="row">
+      <div><label data-t="year"></label><input id="eYear" type="number" inputmode="numeric"></div>
+      <div><label data-t="code"></label><input id="eCode" disabled></div>
+      <div><label data-t="edition"></label><input id="eEdition"></div>
+    </div>
+    <label data-t="technique"></label><input id="eTech" list="techList"><datalist id="techList"></datalist>
+    <label data-t="support"></label><input id="eSupport">
+    <div class="row">
+      <div><label data-t="height"></label><input id="eH" type="number" step="0.1" inputmode="decimal"></div>
+      <div><label data-t="width"></label><input id="eW" type="number" step="0.1" inputmode="decimal"></div>
+      <div><label data-t="depth"></label><input id="eD" type="number" step="0.1" inputmode="decimal"></div>
+    </div>
+    <div class="muted" id="eInches"></div>
+    <div class="row">
+      <div><label data-t="fheight"></label><input id="eFH" type="number" step="0.1" inputmode="decimal"></div>
+      <div><label data-t="fwidth"></label><input id="eFW" type="number" step="0.1" inputmode="decimal"></div>
+      <div><label data-t="fdepth"></label><input id="eFD" type="number" step="0.1" inputmode="decimal"></div>
+    </div>
+    <label data-t="signature"></label><input id="eSig">
+    <div class="row">
+      <div><label data-t="price"></label><input id="ePrice" type="number" step="1" inputmode="decimal"></div>
+      <div><label data-t="status"></label><select id="eStatus"></select></div>
+    </div>
+    <div class="row">
+      <div><label data-t="place"></label><select id="ePlace"></select></div>
+      <div><label data-t="consigned"></label><input id="eCons" type="date"></div>
+    </div>
+    <div class="row">
+      <div><label data-t="owner"></label><select id="eOwner"></select></div>
+      <div><label data-t="solddate"></label><input id="eSold" type="date"></div>
+      <div><label data-t="saleprice"></label><input id="eSale" type="number" step="1" inputmode="decimal"></div>
+    </div>
+    <label data-t="exhibitions"></label><div class="chips" id="eExhs"></div>
+    <label data-t="notes"></label><textarea id="eNotes" rows="3"></textarea>
+    <label data-t="photos"></label>
+    <div class="thumbs" id="eThumbs"></div>
+    <input id="eFiles" type="file" accept="image/*" multiple style="margin-top:8px">
+    <div id="eHistWrap" class="hidden"><h3 data-t="history"></h3><ul class="hist" id="eHist"></ul></div>
+    <div id="eMsg" class="msg hidden"></div>
+    <div class="toolbar" style="margin-top:14px">
+      <button class="primary" id="btnSave" data-t="save"></button>
+      <button id="btnCancel" data-t="cancel"></button>
+      <button id="btnOneCard" data-t="card"></button>
+      <button id="btnOneCoa" data-t="coa"></button>
+      <button class="danger" id="btnDel" data-t="delete"></button>
+    </div>
+  </section>
+
+  <section id="vEnt" class="hidden">
+    <div class="panel"><h2 id="entHead"></h2><div style="overflow-x:auto"><table id="entTable"></table></div></div>
+    <div class="panel">
+      <h2 id="entFormHead"></h2>
+      <div id="entForm"></div>
+      <div id="entMsg" class="msg hidden"></div>
+      <div class="toolbar" style="margin-top:12px">
+        <button class="primary" id="btnEntSave" data-t="save"></button>
+        <button id="btnEntNew"></button>
+        <button class="danger hidden" id="btnEntDel" data-t="delete"></button>
+      </div>
+    </div>
+  </section>
+
+  <section id="vImport" class="panel hidden">
+    <h2 data-t="importhead"></h2>
+    <p class="muted" data-t="importhelp"></p>
+    <div class="row">
+      <div><label data-t="name"></label><input id="iName" value="Cecilia"></div>
+      <div><label data-t="email"></label><input id="iEmail" type="email" placeholder="cecilia@…"></div>
+      <div><label data-t="prefix"></label><input id="iPrefix" value="CEC" maxlength="5"></div>
+    </div>
+    <label data-t="importfiles"></label><input id="iFiles" type="file" accept="image/*" multiple>
+    <div id="iMsg" class="msg hidden"></div>
+    <div class="toolbar" style="margin-top:12px"><button class="primary" id="btnIRun" data-t="importrun"></button></div>
+  </section>
+</main>
+
+<script>
+const SUPABASE_URL = 'https://yymlqvpibdkoumlacdch.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_OE2AAP15yal2tjkrLV-etQ_FaPGG8Ip';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const T = {
+  es: { email:'Correo', password:'Contraseña', signin:'Entrar', signup:'Crear cuenta', logout:'Salir', artists:'Artistas', import:'Importar',
+    works_t:'Obras', pickworks:'Obras en esta exposición', pickall:'Todas / ninguna', exhibitions:'Exposiciones', places:'Lugares', clients:'Clientes',
+    new:'+ Nueva obra', selectall:'Seleccionar todo', clearsel:'Quitar selección', printcards:'Fichas', printcoas:'Certificados', pricelist:'Lista de precios',
+    artist:'Artista', title:'Título', year:'Año', code:'Código', technique:'Técnica', support:'Soporte',
+    height:'Alto (cm)', width:'Ancho (cm)', depth:'Fondo (cm)', fheight:'Alto con marco (cm)', fwidth:'Ancho con marco (cm)', fdepth:'Fondo con marco (cm)',
+    signature:'Firma (dónde / cómo)', price:'Precio (US$)', edition:'Edición', status:'Estado', place:'Lugar actual', consigned:'Fecha de consignación',
+    owner:'Propietario (cliente)', solddate:'Fecha de venta', saleprice:'Precio de venta (US$)', notes:'Notas', photos:'Fotos', history:'Historial',
+    save:'Guardar', cancel:'Cancelar', card:'Ficha', coa:'Certificado', delete:'Borrar', name:'Nombre', prefix:'Prefijo de código', commission:'Comisión %',
+    phone:'Teléfono', bio:'Biografía', city:'Ciudad', country:'País', address:'Dirección', interests:'Intereses', kind:'Tipo', venue:'Sede',
+    start:'Inicio', end:'Fin', opening:'Inauguración', curator:'Curador(a)', nworks:'Obras', show:'Ver obras', edit:'Editar',
+    newwork:'Nueva obra', editwork:'Editar obra', addnew:'+ Nuevo', editing:'Editar',
+    allartists:'Todos los artistas', allstatus:'Todos los estados', allplaces:'Todos los lugares', allexh:'Todas las exposiciones', search:'Buscar…',
+    works:'obras', selected:'seleccionadas', none:'—', ownerf:'Propietario', groupshow:'(colectiva)',
+    st_available:'Disponible', st_reserved:'Reservada', st_sold:'Vendida', st_loan:'En préstamo',
+    k_studio:'Estudio', k_gallery:'Galería', k_storage:'Bodega', k_venue:'Sede de exposición', k_client:'Casa de cliente', k_other:'Otro',
+    h_location:'Lugar', h_owner:'Propietario', h_status:'Estado',
+    setplace:'Mover a lugar', setstatus:'Cambiar estado', addexh:'Agregar a exposición', apply:'Aplicar a seleccionadas', nochange:'(sin cambio)', bulkdone:'Listo: {n} obras actualizadas.',
+    notlinked:'Tu cuenta todavía no está vinculada a un artista. Pide a Daniel que agregue tu correo.',
+    confirmdel:'¿Borrar? No se puede deshacer.', saved:'Guardado.', saving:'Guardando…', needname:'Falta un dato obligatorio.',
+    signupok:'Cuenta creada. Ya puedes entrar.', needtitle:'Falta el título.', nothingsel:'No hay obras para imprimir.',
+    importhead:'Importar obras de Cecilia', importhelp:'Crea el artista (si no existe) y agrega las 14 obras. Elige las 14 fotos de Downloads\\cecilia.',
+    importfiles:'Fotos', importrun:'Importar', importdone:'Listo: {n} obras importadas.', importexists:'Este artista ya tiene obras; no se importó nada.',
+    inches:'Pulgadas', unique:'Única' },
+  en: { email:'Email', password:'Password', signin:'Sign in', signup:'Create account', logout:'Sign out', artists:'Artists', import:'Import',
+    works_t:'Works', pickworks:'Works in this exhibition', pickall:'All / none', exhibitions:'Exhibitions', places:'Places', clients:'Clients',
+    new:'+ New work', selectall:'Select all', clearsel:'Clear', printcards:'Cards', printcoas:'Certificates', pricelist:'Price list',
+    artist:'Artist', title:'Title', year:'Year', code:'Code', technique:'Technique', support:'Support',
+    height:'Height (cm)', width:'Width (cm)', depth:'Depth (cm)', fheight:'Framed height (cm)', fwidth:'Framed width (cm)', fdepth:'Framed depth (cm)',
+    signature:'Signature (where / how)', price:'Price (US$)', edition:'Edition', status:'Status', place:'Current place', consigned:'Date consigned',
+    owner:'Owner (client)', solddate:'Date sold', saleprice:'Sale price (US$)', notes:'Notes', photos:'Photos', history:'History',
+    save:'Save', cancel:'Cancel', card:'Card', coa:'Certificate', delete:'Delete', name:'Name', prefix:'Code prefix', commission:'Commission %',
+    phone:'Phone', bio:'Bio', city:'City', country:'Country', address:'Address', interests:'Interests', kind:'Type', venue:'Venue',
+    start:'Start', end:'End', opening:'Opening', curator:'Curator', nworks:'Works', show:'Show works', edit:'Edit',
+    newwork:'New work', editwork:'Edit work', addnew:'+ New', editing:'Edit',
+    allartists:'All artists', allstatus:'All statuses', allplaces:'All places', allexh:'All exhibitions', search:'Search…',
+    works:'works', selected:'selected', none:'—', ownerf:'Owner', groupshow:'(group show)',
+    st_available:'Available', st_reserved:'Reserved', st_sold:'Sold', st_loan:'On loan',
+    k_studio:'Studio', k_gallery:'Gallery', k_storage:'Storage', k_venue:'Exhibition venue', k_client:'Client’s home', k_other:'Other',
+    h_location:'Place', h_owner:'Owner', h_status:'Status',
+    setplace:'Move to place', setstatus:'Change status', addexh:'Add to exhibition', apply:'Apply to selected', nochange:'(no change)', bulkdone:'Done: {n} works updated.',
+    notlinked:'Your account is not linked to an artist yet. Ask Daniel to add your email.',
+    confirmdel:'Delete? This cannot be undone.', saved:'Saved.', saving:'Saving…', needname:'A required field is missing.',
+    signupok:'Account created. You can sign in now.', needtitle:'Title is missing.', nothingsel:'No works to print.',
+    importhead:'Import Cecilia’s works', importhelp:'Creates the artist (if needed) and adds the 14 works. Choose the 14 photos from Downloads\\cecilia.',
+    importfiles:'Photos', importrun:'Import', importdone:'Done: {n} works imported.', importexists:'This artist already has works; nothing was imported.',
+    inches:'Inches', unique:'Unique' }
+};
+let lang = 'es';
+try { lang = localStorage.getItem('cat_lang') || 'es'; } catch(e) {}
+const t = k => (T[lang][k] ?? k);
+const STATUSES = ['available','reserved','sold','loan'];
+const KINDS = ['studio','gallery','storage','venue','client','other'];
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num = v => (v === '' || v == null) ? null : Number(v);
+const inch = cm => (Math.round(cm / 2.54 * 10) / 10).toFixed(1);
+const fmtNum = n => String(+n);
+const usd = n => n == null ? '' : 'US$' + Number(n).toLocaleString('en-US', {maximumFractionDigits:0});
+const photoUrl = p => sb.storage.from('photos').getPublicUrl(p).data.publicUrl;
+const opt = (v, label, sel) => `<option value="${esc(v)}"${sel ? ' selected' : ''}>${esc(label)}</option>`;
+const fmtDate = d => d ? new Date(d.length === 10 ? d + 'T12:00:00' : d).toLocaleDateString(lang === 'es' ? 'es-MX' : 'en-US', { year:'numeric', month:'long', day:'numeric' }) : '';
+function dims(a, b, c) { return [a, b, c].filter(x => x != null && x !== ''); }
+function sizeText(w, withIn = true, framed = false) {
+  const d = framed ? dims(w.framed_height_cm, w.framed_width_cm, w.framed_depth_cm) : dims(w.height_cm, w.width_cm, w.depth_cm);
+  if (!d.length) return '';
+  const cm = d.map(fmtNum).join(' x ') + ' cm';
+  return withIn ? cm + '  ·  ' + d.map(inch).join(' x ') + ' in' : cm;
+}
+const VIEWS = ['vLogin','vNoLink','vList','vEdit','vEnt','vImport'];
+function show(id) { VIEWS.forEach(v => $(v).classList.toggle('hidden', v !== id)); window.scrollTo(0,0); }
+function msg(el, text, isErr) { el.textContent = text; el.classList.toggle('err', !!isErr); el.classList.toggle('hidden', !text); }
+function setNav(name) { document.querySelectorAll('header [data-nav]').forEach(b => b.classList.toggle('cur', b.dataset.nav === name)); }
+
+async function resizeImage(file, max = 1800) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; });
+    const s = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+    const c = document.createElement('canvas');
+    c.width = Math.round(img.naturalWidth * s); c.height = Math.round(img.naturalHeight * s);
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    return await new Promise(res => c.toBlob(res, 'image/jpeg', 0.86));
+  } finally { URL.revokeObjectURL(url); }
+}
+async function uploadPhotos(work, files, startSort = 0) {
+  let i = startSort;
+  for (const f of files) {
+    const blob = await resizeImage(f);
+    const path = `${work.artist_id}/${work.id}/${crypto.randomUUID()}.jpg`;
+    const up = await sb.storage.from('photos').upload(path, blob, { contentType: 'image/jpeg' });
+    if (up.error) throw up.error;
+    const ins = await sb.from('photos').insert({ work_id: work.id, path, sort: i++ });
+    if (ins.error) throw ins.error;
+  }
+}
+
+let me = null, isAdmin = false, myArtist = null;
+let artists = [], places = [], clients = [], exhibitions = [], works = [];
+let selected = new Set(), editing = null, fOwner = null;
+let curEnt = null, entEditing = null;
+
+async function boot() {
+  applyLang();
+  const { data } = await sb.auth.getSession();
+  if (data.session) await enter(data.session); else show('vLogin');
+}
+async function enter(session) {
+  me = session.user;
+  const a = await sb.rpc('is_admin');
+  isAdmin = !!a.data;
+  $('hdr').classList.remove('hidden');
+  document.querySelectorAll('header .adm').forEach(b => b.classList.toggle('hidden', !isAdmin));
+  $('fArtist').classList.toggle('hidden', !isAdmin);
+  $('eArtistWrap').classList.toggle('hidden', !isAdmin);
+  await loadAll();
+  if (!isAdmin) {
+    myArtist = artists.find(x => (x.email || '').toLowerCase() === (me.email || '').toLowerCase());
+    if (!myArtist) { show('vNoLink'); return; }
+  }
+  goWorks();
+}
+async function loadAll() {
+  const [ra, rp, rc, re] = await Promise.all([
+    sb.from('artists').select('*').order('name'),
+    sb.from('places').select('*').order('name'),
+    sb.from('clients').select('*').order('name'),
+    sb.from('exhibitions').select('*').order('start_date', { ascending: false, nullsFirst: false })
+  ]);
+  artists = ra.data || []; places = rp.data || []; clients = rc.data || []; exhibitions = re.data || [];
+  await loadWorks();
+  fillFilters();
+}
+async function loadWorks() {
+  const r = await sb.from('works').select('*, artists(name, city), photos(id,path,sort), exhibition_works(exhibition_id)').order('code');
+  works = (r.data || []).map(w => ({ ...w, photos: (w.photos || []).sort((a,b) => a.sort - b.sort), exh: (w.exhibition_works || []).map(x => x.exhibition_id) }));
+  const techs = [...new Set(works.map(w => w.technique).filter(Boolean))];
+  $('techList').innerHTML = techs.map(x => `<option value="${esc(x)}">`).join('');
+}
+const artistName = id => artists.find(a => a.id === id)?.name || '';
+const placeName = id => places.find(p => p.id === id)?.name || '';
+const clientName = id => clients.find(c => c.id === id)?.name || '';
+const placeLabel = p => p.name + (isAdmin ? ' · ' + artistName(p.artist_id) : '');
+
+function applyLang() {
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-t]').forEach(el => el.textContent = t(el.dataset.t));
+  $('btnLang').textContent = $('btnLang2').textContent = lang === 'es' ? 'English' : 'Español';
+  $('fText').placeholder = t('search');
+  $('eStatus').innerHTML = STATUSES.map(s => opt(s, t('st_'+s))).join('');
+  fillFilters();
+  if (!$('vList').classList.contains('hidden')) renderList();
+  if (!$('vEnt').classList.contains('hidden') && curEnt) renderEnt();
+}
+function toggleLang() { lang = lang === 'es' ? 'en' : 'es'; try { localStorage.setItem('cat_lang', lang); } catch(e) {} applyLang(); }
+
+function fillFilters() {
+  const fa = $('fArtist').value, fs = $('fStatus').value, fp = $('fPlace').value, fe = $('fExh').value;
+  $('fArtist').innerHTML = opt('', t('allartists')) + artists.map(a => opt(a.id, a.name)).join(''); $('fArtist').value = fa;
+  $('fStatus').innerHTML = opt('', t('allstatus')) + STATUSES.map(s => opt(s, t('st_'+s))).join(''); $('fStatus').value = fs;
+  $('fPlace').innerHTML = opt('', t('allplaces')) + places.map(p => opt(p.id, placeLabel(p))).join(''); $('fPlace').value = fp;
+  $('fExh').innerHTML = opt('', t('allexh')) + exhibitions.map(e => opt(e.id, e.title)).join(''); $('fExh').value = fe;
+  $('bPlace').innerHTML = opt('', t('nochange')) + places.map(p => opt(p.id, placeLabel(p))).join('');
+  $('bStatus').innerHTML = opt('', t('nochange')) + STATUSES.map(s => opt(s, t('st_'+s))).join('');
+  $('bExh').innerHTML = opt('', t('nochange')) + exhibitions.map(e => opt(e.id, e.title)).join('');
+  $('eArtist').innerHTML = artists.map(a => opt(a.id, a.name)).join('');
+}
+
+// ---------- works list ----------
+function goWorks() { setNav('works'); renderList(); show('vList'); }
+function filtered() {
+  const fa = $('fArtist').value, fs = $('fStatus').value, fp = $('fPlace').value, fe = $('fExh').value, q = $('fText').value.trim().toLowerCase();
+  return works.filter(w => (!fa || w.artist_id === fa) && (!fs || w.status === fs) && (!fp || w.place_id === fp) &&
+    (!fe || w.exh.includes(fe)) && (!fOwner || w.owner_client_id === fOwner) &&
+    (!q || [w.title, w.code, w.technique, w.artists?.name, placeName(w.place_id), clientName(w.owner_client_id)].join(' ').toLowerCase().includes(q)));
+}
+function renderList() {
+  const list = filtered();
+  $('count').textContent = `${list.length} ${t('works')}` + (selected.size ? ` · ${selected.size} ${t('selected')}` : '');
+  const n = selected.size ? ` (${selected.size})` : '';
+  $('btnCards').textContent = t('printcards') + n; $('btnCoas').textContent = t('printcoas') + n; $('btnList').textContent = t('pricelist') + n;
+  $('btnSelClear').classList.toggle('hidden', !selected.size);
+  $('bulkBox').classList.toggle('hidden', !selected.size);
+  $('bulkHead').textContent = `${selected.size} ${t('selected')}`;
+  $('fOwnerBox').innerHTML = fOwner ? `<span class="chip">${t('ownerf')}: ${esc(clientName(fOwner))} <button id="clrOwner">✕</button></span>` : '';
+  $('fOwnerBox').classList.toggle('hidden', !fOwner);
+  $('grid').innerHTML = list.map(w => {
+    const p = w.photos[0];
+    return `<div class="work${selected.has(w.id) ? ' on' : ''}" data-id="${w.id}">
+      <input type="checkbox" class="sel" data-id="${w.id}" ${selected.has(w.id) ? 'checked' : ''}>
+      ${p ? `<img loading="lazy" src="${photoUrl(p.path)}" alt="">` : `<div class="noimg">—</div>`}
+      <div class="info"><div class="t">${esc(w.title)}${w.year ? ', ' + w.year : ''}</div>
+      <div class="muted">${esc(w.code || '')}${isAdmin && w.artists ? ' · ' + esc(w.artists.name) : ''}</div>
+      <div>${esc(sizeText(w, false))}</div>
+      <div class="muted">${esc(placeName(w.place_id))}${w.owner_client_id ? ' · ' + esc(clientName(w.owner_client_id)) : ''}</div>
+      <div>${usd(w.price_usd)} <span class="badge b-${w.status}">${t('st_' + w.status)}</span></div></div></div>`;
+  }).join('');
+}
+async function applyBulk() {
+  const ids = [...selected]; if (!ids.length) return;
+  const upd = {};
+  if ($('bPlace').value) upd.place_id = $('bPlace').value;
+  if ($('bStatus').value) upd.status = $('bStatus').value;
+  const ex = $('bExh').value;
+  $('btnBulk').disabled = true; $('bMsg').textContent = t('saving');
+  try {
+    if (Object.keys(upd).length) { const r = await sb.from('works').update(upd).in('id', ids); if (r.error) throw r.error; }
+    if (ex) { const r = await sb.from('exhibition_works').upsert(ids.map(id => ({ exhibition_id: ex, work_id: id })), { onConflict: 'exhibition_id,work_id', ignoreDuplicates: true }); if (r.error) throw r.error; }
+    await loadWorks(); renderList();
+    $('bMsg').textContent = t('bulkdone').replace('{n}', ids.length);
+    $('bPlace').value = $('bStatus').value = $('bExh').value = '';
+  } catch (e) { $('bMsg').textContent = e.message || String(e); }
+  finally { $('btnBulk').disabled = false; }
+}
+
+// ---------- edit work ----------
+function artistOf() { return isAdmin ? $('eArtist').value : myArtist.id; }
+function fillWorkSelects(w) {
+  const aid = artistOf();
+  $('ePlace').innerHTML = opt('', t('none')) + places.filter(p => p.artist_id === aid).map(p => opt(p.id, p.name, w?.place_id === p.id)).join('');
+  $('eOwner').innerHTML = opt('', t('none')) + clients.filter(c => c.artist_id === aid).map(c => opt(c.id, c.name, w?.owner_client_id === c.id)).join('');
+  const mine = w?.exh || [];
+  $('eExhs').innerHTML = exhibitions.filter(e => !e.artist_id || e.artist_id === aid || mine.includes(e.id))
+    .map(e => `<label><input type="checkbox" value="${e.id}" ${mine.includes(e.id) ? 'checked' : ''}> ${esc(e.title)}</label>`).join('') || `<span class="muted">${t('none')}</span>`;
+}
+async function openEdit(w) {
+  editing = w || null;
+  $('eHead').textContent = w ? t('editwork') : t('newwork');
+  $('eArtist').value = w ? w.artist_id : (myArtist?.id || $('fArtist').value || artists[0]?.id || '');
+  const v = (id, x) => $(id).value = x ?? '';
+  v('eTitle', w?.title); v('eYear', w?.year); v('eCode', w?.code); v('eEdition', w?.edition);
+  v('eTech', w?.technique); v('eSupport', w?.support);
+  v('eH', w?.height_cm); v('eW', w?.width_cm); v('eD', w?.depth_cm);
+  v('eFH', w?.framed_height_cm); v('eFW', w?.framed_width_cm); v('eFD', w?.framed_depth_cm);
+  v('eSig', w?.signature); v('ePrice', w?.price_usd); $('eStatus').value = w?.status || 'available';
+  v('eCons', w?.date_consigned); v('eSold', w?.sold_date); v('eSale', w?.sale_price_usd); v('eNotes', w?.notes);
+  $('eFiles').value = '';
+  fillWorkSelects(w);
+  ['btnDel','btnOneCard','btnOneCoa'].forEach(b => $(b).classList.toggle('hidden', !w));
+  msg($('eMsg'), ''); updInches(); renderThumbs();
+  $('eHistWrap').classList.add('hidden');
+  show('vEdit');
+  if (w) {
+    const h = await sb.from('work_history').select('*').eq('work_id', w.id).order('at');
+    const rows = h.data || [];
+    $('eHist').innerHTML = rows.map(r => `<li>${fmtDate(r.at)} — ${t('h_' + r.kind)}: ${esc(r.kind === 'status' ? t('st_' + r.value) : r.value)}</li>`).join('');
+    $('eHistWrap').classList.toggle('hidden', !rows.length);
+  }
+}
+function updInches() {
+  const d = [$('eH').value, $('eW').value, $('eD').value].filter(v => v !== '').map(Number);
+  $('eInches').textContent = d.length ? `${t('inches')}: ${d.map(inch).join(' x ')} in` : '';
+}
+function renderThumbs() {
+  const ps = editing?.photos || [];
+  $('eThumbs').innerHTML = ps.map(p => `<div><img src="${photoUrl(p.path)}"><button data-pid="${p.id}">✕</button></div>`).join('');
+}
+async function saveWork() {
+  const title = $('eTitle').value.trim();
+  if (!title) { msg($('eMsg'), t('needtitle'), true); return; }
+  $('btnSave').disabled = true; msg($('eMsg'), t('saving'));
+  const s = id => $(id).value.trim() || null;
+  const rec = {
+    artist_id: artistOf(), title, year: num($('eYear').value), edition: s('eEdition'), technique: s('eTech'), support: s('eSupport'),
+    height_cm: num($('eH').value), width_cm: num($('eW').value), depth_cm: num($('eD').value),
+    framed_height_cm: num($('eFH').value), framed_width_cm: num($('eFW').value), framed_depth_cm: num($('eFD').value),
+    signature: s('eSig'), price_usd: num($('ePrice').value), status: $('eStatus').value,
+    place_id: $('ePlace').value || null, date_consigned: $('eCons').value || null,
+    owner_client_id: $('eOwner').value || null, sold_date: $('eSold').value || null, sale_price_usd: num($('eSale').value),
+    notes: s('eNotes')
+  };
+  try {
+    const r = editing ? await sb.from('works').update(rec).eq('id', editing.id).select().single()
+                      : await sb.from('works').insert(rec).select().single();
+    if (r.error) throw r.error;
+    const w = r.data;
+    const want = [...$('eExhs').querySelectorAll('input:checked')].map(i => i.value);
+    const had = editing?.exh || [];
+    const add = want.filter(x => !had.includes(x)), del = had.filter(x => !want.includes(x));
+    if (add.length) { const a = await sb.from('exhibition_works').insert(add.map(e => ({ exhibition_id: e, work_id: w.id }))); if (a.error) throw a.error; }
+    for (const e of del) await sb.from('exhibition_works').delete().eq('exhibition_id', e).eq('work_id', w.id);
+    const files = [...$('eFiles').files];
+    if (files.length) await uploadPhotos(w, files, (editing?.photos?.length || 0));
+    await loadWorks(); goWorks();
+  } catch (e) { msg($('eMsg'), e.message || String(e), true); }
+  finally { $('btnSave').disabled = false; }
+}
+async function deletePhoto(pid) {
+  const p = editing.photos.find(x => x.id === pid); if (!p) return;
+  await sb.storage.from('photos').remove([p.path]);
+  await sb.from('photos').delete().eq('id', pid);
+  editing.photos = editing.photos.filter(x => x.id !== pid);
+  renderThumbs(); loadWorks();
+}
+async function deleteWork() {
+  if (!editing || !confirm(t('confirmdel'))) return;
+  const paths = editing.photos.map(p => p.path);
+  if (paths.length) await sb.storage.from('photos').remove(paths);
+  const r = await sb.from('works').delete().eq('id', editing.id);
+  if (r.error) { msg($('eMsg'), r.error.message, true); return; }
+  selected.delete(editing.id);
+  await loadWorks(); goWorks();
+}
+
+// ---------- printing ----------
+function printWindow(head, body) {
+  const w = window.open('', '_blank'); if (!w) return;
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Catartsma</title>${head}</head><body>${body}
+  <script>window.onload=()=>{const imgs=[...document.images];Promise.all(imgs.map(i=>i.complete?1:new Promise(r=>{i.onload=i.onerror=r}))).then(()=>setTimeout(()=>window.print(),300));}<\/script></body></html>`);
+  w.document.close();
+}
+const SQUARE_CSS = `@page { size: 21.5cm 21.5cm; margin: 0; }
+  body { margin:0; font-family: Arial, Helvetica, sans-serif; color:#111; }
+  .sq { width:21.5cm; height:21.5cm; padding:1.6cm; box-sizing:border-box; display:flex; flex-direction:column; align-items:center; page-break-after:always; break-after:page; overflow:hidden; }
+  .sq:last-child { page-break-after:auto; break-after:auto; }`;
+function printList() { return selected.size ? works.filter(w => selected.has(w.id)) : filtered(); }
+function cardsHtml(list) {
+  const head = `<style>${SQUARE_CSS}
+    .img { flex:1; width:100%; display:flex; align-items:center; justify-content:center; min-height:0; }
+    .img img { max-width:100%; max-height:13.6cm; object-fit:contain; }
+    .txt { height:3.6cm; text-align:center; padding-top:.5cm; }
+    .ttl { font-weight:bold; font-size:14pt; } .ln { font-size:10pt; margin-top:.15cm; } .pr { font-weight:bold; font-size:11.5pt; margin-top:.3cm; }</style>`;
+  const body = list.map(w => `<div class="sq"><div class="img">${w.photos[0] ? `<img src="${photoUrl(w.photos[0].path)}">` : ''}</div>
+    <div class="txt"><div class="ttl">${esc(w.title)}${w.year ? ', ' + w.year : ''}</div>
+    <div class="ln">${esc(w.technique || '')}</div><div class="ln">${esc(sizeText(w))}</div>
+    <div class="pr">${w.status === 'sold' ? esc(t('st_sold')) : usd(w.price_usd)}</div></div></div>`).join('');
+  return [head, body];
+}
+function coasHtml(list, today) {
+  const dEs = d => new Date(d + 'T12:00:00').toLocaleDateString('es-MX', { year:'numeric', month:'long', day:'numeric' });
+  const head = `<style>${SQUARE_CSS}
+    .sq { justify-content:space-between; }
+    .hd { text-align:center; } .hd .a { font-size:13pt; font-weight:bold; letter-spacing:.25em; } .hd .b { font-size:9pt; letter-spacing:.2em; color:#555; margin-top:.1cm; }
+    .rule { width:3cm; border-top:1px solid #999; margin:.3cm auto 0; }
+    .img { height:6.6cm; width:100%; display:flex; align-items:center; justify-content:center; }
+    .img img { max-width:100%; max-height:6.6cm; object-fit:contain; }
+    .ttl { font-weight:bold; font-size:14pt; text-align:center; }
+    table { border-collapse:collapse; margin:0 auto; font-size:9.5pt; } td { padding:.06cm .2cm; vertical-align:top; } td.k { color:#666; text-align:right; white-space:nowrap; }
+    .st { font-size:8.5pt; color:#333; text-align:center; max-width:15cm; line-height:1.35; }
+    .sig { display:flex; justify-content:space-between; align-items:flex-end; width:100%; font-size:9pt; }
+    .sig .line { border-top:1px solid #111; width:6.5cm; padding-top:.12cm; text-align:center; }
+    .sig .pd { text-align:left; color:#333; }</style>`;
+  const body = list.map(w => {
+    const a = artists.find(x => x.id === w.artist_id) || {};
+    const issued = w.coa_issued || today;
+    const rows = [
+      ['Artista / Artist', a.name],
+      ['Técnica / Medium', w.technique],
+      ['Medidas / Size', sizeText(w)],
+      w.framed_height_cm ? ['Con marco / Framed', sizeText(w, true, true)] : null,
+      ['Edición / Edition', w.edition],
+      ['Firma / Signature', w.signature],
+      ['Registro / Inventory no.', w.code],
+      w.owner_client_id ? ['Propietario / Owner', clientName(w.owner_client_id)] : null
+    ].filter(r => r && r[1]);
+    return `<div class="sq">
+      <div class="hd"><div class="a">CERTIFICADO DE AUTENTICIDAD</div><div class="b">CERTIFICATE OF AUTHENTICITY</div><div class="rule"></div></div>
+      <div class="img">${w.photos[0] ? `<img src="${photoUrl(w.photos[0].path)}">` : ''}</div>
+      <div class="ttl">${esc(w.title)}${w.year ? ', ' + w.year : ''}</div>
+      <table>${rows.map(r => `<tr><td class="k">${r[0]}</td><td>${esc(r[1])}</td></tr>`).join('')}</table>
+      <div class="st">Certifico que la obra aquí descrita es original, realizada por mí y de mi autoría.<br>
+        <i>I certify that the work described here is an original created by me.</i></div>
+      <div class="sig"><div class="pd">${esc(a.city || '')}${a.city ? ', ' : ''}${dEs(issued)}</div><div class="line">${esc(a.name || '')}</div></div>
+    </div>`;
+  }).join('');
+  return [head, body];
+}
+function printCards(list) { if (!list.length) { alert(t('nothingsel')); return; } printWindow(...cardsHtml(list)); }
+async function printCoas(list) {
+  if (!list.length) { alert(t('nothingsel')); return; }
+  const today = new Date().toISOString().slice(0, 10);
+  printWindow(...coasHtml(list, today));
+  const toMark = list.filter(w => !w.coa_issued).map(w => w.id);
+  if (toMark.length) { await sb.from('works').update({ coa_issued: today }).in('id', toMark); loadWorks(); }
+}
+function printPriceList(list) {
+  if (!list.length) { alert(t('nothingsel')); return; }
+  const ex = exhibitions.find(e => e.id === $('fExh').value);
+  const head = `<style>@page{size:letter;margin:1.5cm} body{font-family:Arial,sans-serif;font-size:10pt} table{width:100%;border-collapse:collapse} td,th{border-bottom:1px solid #ccc;padding:5px;text-align:left;vertical-align:middle} img{width:2.2cm;height:2.2cm;object-fit:contain} th{font-size:9pt;color:#555}</style>`;
+  const body = `<h2>${esc(ex ? ex.title : 'Catartsma')}</h2>${ex ? `<p>${esc([ex.venue, ex.city].filter(Boolean).join(', '))}${ex.start_date ? ' · ' + fmtDate(ex.start_date) : ''}${ex.end_date ? ' – ' + fmtDate(ex.end_date) : ''}</p>` : ''}
+    <table><tr><th></th><th>${t('code')}</th><th>${t('title')}</th><th>${t('technique')}</th><th>cm / in</th><th>${t('price')}</th><th>${t('status')}</th></tr>` +
+    list.map(w => `<tr><td>${w.photos[0] ? `<img src="${photoUrl(w.photos[0].path)}">` : ''}</td><td>${esc(w.code||'')}</td><td><b>${esc(w.title)}</b>${w.year ? ', ' + w.year : ''}${isAdmin && w.artists ? '<br>' + esc(w.artists.name) : ''}</td><td>${esc(w.technique||'')}</td><td>${esc(sizeText(w))}</td><td>${usd(w.price_usd)}</td><td>${t('st_'+w.status)}</td></tr>`).join('') + '</table>';
+  printWindow(head, body);
+}
+
+// ---------- generic lists ----------
+const ENT = {
+  exhibitions: { table:'exhibitions', title:'exhibitions', owner:true, ownerOptional:true,
+    fields:[['title','title','text'],['venue','venue','text'],['place_id','place','place'],['city','city','text'],
+            ['opening_date','opening','date'],['start_date','start','date'],['end_date','end','date'],['curator','curator','text'],['notes','notes','textarea']],
+    cols:[['title','title'],['venue','venue'],['start_date','start'],['end_date','end']], countBy:e => works.filter(w => w.exh.includes(e.id)).length,
+    showWorks:e => { resetFilters(); $('fExh').value = e.id; goWorks(); } },
+  places: { table:'places', title:'places', owner:true,
+    fields:[['name','name','text'],['kind','kind','kind'],['address','address','text'],['city','city','text'],['notes','notes','textarea']],
+    cols:[['name','name'],['kind','kind'],['city','city']], countBy:p => works.filter(w => w.place_id === p.id).length,
+    showWorks:p => { resetFilters(); $('fPlace').value = p.id; goWorks(); } },
+  clients: { table:'clients', title:'clients', owner:true,
+    fields:[['name','name','text'],['email','email','email'],['phone','phone','text'],['address','address','text'],['city','city','text'],['country','country','text'],['interests','interests','textarea'],['notes','notes','textarea']],
+    cols:[['name','name'],['email','email'],['city','city']], countBy:c => works.filter(w => w.owner_client_id === c.id).length,
+    showWorks:c => { resetFilters(); fOwner = c.id; goWorks(); } },
+  artists: { table:'artists', title:'artists', owner:false,
+    fields:[['name','name','text'],['email','email','email'],['code_prefix','prefix','text'],['city','city','text'],['commission_pct','commission','number'],['phone','phone','text'],['bio','bio','textarea']],
+    cols:[['name','name'],['email','email'],['code_prefix','prefix'],['city','city']], countBy:a => works.filter(w => w.artist_id === a.id).length,
+    showWorks:a => { resetFilters(); $('fArtist').value = a.id; goWorks(); } }
+};
+let pickSel = new Set();
+function pickList() {
+  const aid = isAdmin ? ($('f_artist_id')?.value || '') : myArtist.id;
+  return aid ? works.filter(w => w.artist_id === aid) : works;
+}
+function renderPick() {
+  const l = pickList();
+  $('exPick').innerHTML = l.map(w => `<label class="${pickSel.has(w.id) ? 'on' : ''}"><input type="checkbox" value="${w.id}" ${pickSel.has(w.id) ? 'checked' : ''}>
+    ${w.photos[0] ? `<img loading="lazy" src="${photoUrl(w.photos[0].path)}">` : '<div class="noimg"></div>'}<span>${esc(w.title)}</span></label>`).join('') || `<span class="muted">${t('none')}</span>`;
+  $('pickCount').textContent = `(${pickSel.size})`;
+}
+function resetFilters() { ['fArtist','fStatus','fPlace','fExh','fText'].forEach(id => $(id).value = ''); fOwner = null; }
+const entRows = name => ({ exhibitions, places, clients, artists })[name];
+function goEnt(name) { curEnt = name; entEditing = null; setNav(name); renderEnt(); show('vEnt'); }
+function renderEnt() {
+  const E = ENT[curEnt], rows = entRows(curEnt);
+  $('entHead').textContent = t(E.title);
+  $('btnEntNew').textContent = t('addnew');
+  const showOwner = E.owner && isAdmin;
+  $('entTable').innerHTML = `<tr>${E.cols.map(c => `<th>${t(c[1])}</th>`).join('')}${showOwner ? `<th>${t('artist')}</th>` : ''}<th>${t('nworks')}</th><th></th></tr>` +
+    rows.map(r => `<tr>${E.cols.map(([c]) => `<td>${esc(c === 'kind' ? t('k_' + r[c]) : (c.endsWith('_date') ? fmtDate(r[c]) : r[c]))}</td>`).join('')}
+      ${showOwner ? `<td>${esc(r.artist_id ? artistName(r.artist_id) : t('groupshow'))}</td>` : ''}
+      <td>${E.countBy(r)}</td><td style="white-space:nowrap"><button data-edit="${r.id}">${t('edit')}</button> <button data-show="${r.id}">${t('show')}</button></td></tr>`).join('');
+  renderEntForm();
+}
+function renderEntForm() {
+  const E = ENT[curEnt], r = entEditing || {};
+  $('entFormHead').textContent = entEditing ? `${t('editing')}: ${entEditing.name || entEditing.title}` : t('addnew').replace('+ ', '');
+  let html = '';
+  if (E.owner && isAdmin) {
+    html += `<label>${t('artist')}</label><select id="f_artist_id">${E.ownerOptional ? opt('', t('groupshow')) : ''}${artists.map(a => opt(a.id, a.name, r.artist_id === a.id)).join('')}</select>`;
+  }
+  for (const [col, lab, type] of E.fields) {
+    const v = r[col] ?? '';
+    html += `<label>${t(lab)}</label>`;
+    if (type === 'textarea') html += `<textarea id="f_${col}" rows="2">${esc(v)}</textarea>`;
+    else if (type === 'kind') html += `<select id="f_${col}">${KINDS.map(k => opt(k, t('k_' + k), v === k)).join('')}</select>`;
+    else if (type === 'place') html += `<select id="f_${col}">${opt('', t('none'))}${places.map(p => opt(p.id, placeLabel(p), v === p.id)).join('')}</select>`;
+    else html += `<input id="f_${col}" type="${type}" value="${esc(v)}">`;
+  }
+  if (curEnt === 'exhibitions') html += `<label>${t('pickworks')} <span id="pickCount"></span></label><div class="toolbar" style="margin:0 0 6px"><button type="button" id="pickAll">${t('pickall')}</button></div><div class="pick" id="exPick"></div>`;
+  $('entForm').innerHTML = html;
+  if (curEnt === 'exhibitions') {
+    pickSel = new Set(entEditing ? works.filter(w => w.exh.includes(entEditing.id)).map(w => w.id) : []);
+    renderPick();
+    if ($('f_artist_id')) $('f_artist_id').onchange = renderPick;
+    $('pickAll').onclick = () => { const l = pickList(); const all = l.length && l.every(w => pickSel.has(w.id)); l.forEach(w => all ? pickSel.delete(w.id) : pickSel.add(w.id)); renderPick(); };
+    $('exPick').onchange = e => { const id = e.target.value; e.target.checked ? pickSel.add(id) : pickSel.delete(id); e.target.closest('label').classList.toggle('on', e.target.checked); $('pickCount').textContent = `(${pickSel.size})`; };
+  }
+  $('btnEntDel').classList.toggle('hidden', !entEditing);
+  msg($('entMsg'), '');
+}
+async function saveEnt() {
+  const E = ENT[curEnt], rec = {};
+  for (const [col, , type] of E.fields) {
+    const v = $('f_' + col).value.trim();
+    rec[col] = v === '' ? null : (type === 'number' ? Number(v) : v);
+  }
+  if (curEnt === 'artists') { rec.code_prefix = (rec.code_prefix || '').toUpperCase() || null; if (rec.email) rec.email = rec.email.toLowerCase(); if (rec.commission_pct == null) rec.commission_pct = 0; }
+  if (E.owner) rec.artist_id = isAdmin ? ($('f_artist_id').value || null) : myArtist.id;
+  const req = curEnt === 'exhibitions' ? rec.title : rec.name;
+  if (!req || (curEnt === 'artists' && !rec.code_prefix) || (E.owner && !E.ownerOptional && !rec.artist_id)) { msg($('entMsg'), t('needname'), true); return; }
+  const r = entEditing ? await sb.from(E.table).update(rec).eq('id', entEditing.id).select().single() : await sb.from(E.table).insert(rec).select().single();
+  if (r.error) { msg($('entMsg'), r.error.message, true); return; }
+  if (curEnt === 'exhibitions') {
+    const id = r.data.id;
+    const had = works.filter(w => w.exh.includes(id)).map(w => w.id);
+    const want = [...pickSel];
+    const add = want.filter(x => !had.includes(x)), del = had.filter(x => !want.includes(x));
+    if (add.length) { const a = await sb.from('exhibition_works').insert(add.map(w => ({ exhibition_id: id, work_id: w }))); if (a.error) { msg($('entMsg'), a.error.message, true); return; } }
+    if (del.length) { const d = await sb.from('exhibition_works').delete().eq('exhibition_id', id).in('work_id', del); if (d.error) { msg($('entMsg'), d.error.message, true); return; } }
+  }
+  await loadAll(); entEditing = null; renderEnt(); msg($('entMsg'), t('saved'));
+}
+async function deleteEnt() {
+  if (!entEditing || !confirm(t('confirmdel'))) return;
+  const r = await sb.from(ENT[curEnt].table).delete().eq('id', entEditing.id);
+  if (r.error) { msg($('entMsg'), r.error.message, true); return; }
+  await loadAll(); entEditing = null; renderEnt();
+}
+
+// ---------- import ----------
+const CECILIA = [
+  ['DOS VERSOS',2026,'Acrilico sobre tela de algodon',140,260,9000,'dos versos.jpeg'],
+  ['GUIÑO DE MAR',2025,'Oleo sobre tela',152,122,7200,'Guinio de mar.jpeg'],
+  ['Palpito de mar 1',2026,'Acrilico sobre tela de algodon',220,110,7200,'palpito de mar 1.jpeg'],
+  ['Palpito de mar II',2026,'Acrilico sobre tela de algodon',220,110,7200,'Palpito de mar 2.jpeg'],
+  ['SONATA',2026,'Acrilico sobre tela de algodon',150,120,7000,'sonata.jpeg'],
+  ['DECANTACIONES',2026,'Acrilico sobre tela',210,90,7200,'Decantaciones.jpeg'],
+  ['INTUICIONES',2025,'Acrilico y Oleo sobre tela',110,110,4200,'intuiciones.jpeg'],
+  ['ROSETE',2026,'Acrilico sobre tela',150,100,4800,'Rosete.jpeg'],
+  ['Gacela',2025,'Acrilico sobre tela',50,50,1200,'gacela .jpeg'],
+  ['Rastro',2025,'Acrilico sobre tela',50,50,1200,'Rastro.jpeg'],
+  ['ARQUITECTURA',2025,'Acrilico y Pastel sobre papel',76,56,1800,'arquitectura.jpeg'],
+  ['PROSA',2025,'Acrilico y Pastel sobre papel',37,28,1400,'prosa.jpeg'],
+  ['VERSO',2025,'Acrilico y Pastel sobre papel',37,28,1400,'verso.jpeg'],
+  ['Memoria de Egipto',2024,'Acrilico y Pastel sobre papel',42,31,1600,'Memorias de Egipto.jpeg']
+];
+async function runImport() {
+  const out = $('iMsg'); $('btnIRun').disabled = true;
+  try {
+    const name = $('iName').value.trim(), email = $('iEmail').value.trim().toLowerCase() || null, prefix = $('iPrefix').value.trim().toUpperCase();
+    let a = artists.find(x => x.code_prefix === prefix) || (email && artists.find(x => x.email === email));
+    if (!a) { const r = await sb.from('artists').insert({ name, email, code_prefix: prefix }).select().single(); if (r.error) throw r.error; a = r.data; }
+    const existing = await sb.from('works').select('id', { count: 'exact', head: true }).eq('artist_id', a.id);
+    if (existing.count) { msg(out, t('importexists'), true); return; }
+    const files = [...$('iFiles').files];
+    const byName = n => files.find(f => f.name.trim().toLowerCase() === n.trim().toLowerCase());
+    let n = 0;
+    for (const [title, year, tech, h, w, price, fname] of CECILIA) {
+      msg(out, `${++n}/14 · ${title}…`);
+      const r = await sb.from('works').insert({ artist_id: a.id, title, year, technique: tech, height_cm: h, width_cm: w, price_usd: price, status: 'available', edition: t('unique') }).select().single();
+      if (r.error) throw r.error;
+      const f = byName(fname); if (f) await uploadPhotos(r.data, [f]);
+    }
+    await loadAll(); msg(out, t('importdone').replace('{n}', n));
+  } catch (e) { msg(out, e.message || String(e), true); }
+  finally { $('btnIRun').disabled = false; }
+}
+
+// ---------- events ----------
+$('btnLang').onclick = $('btnLang2').onclick = toggleLang;
+$('btnLogin').onclick = async () => {
+  const r = await sb.auth.signInWithPassword({ email: $('lEmail').value.trim(), password: $('lPass').value });
+  if (r.error) msg($('lMsg'), r.error.message, true); else await enter(r.data.session);
+};
+$('btnSignup').onclick = async () => {
+  const r = await sb.auth.signUp({ email: $('lEmail').value.trim(), password: $('lPass').value });
+  if (r.error) msg($('lMsg'), r.error.message, true); else if (r.data.session) await enter(r.data.session); else msg($('lMsg'), t('signupok'));
+};
+$('btnOut').onclick = async () => { await sb.auth.signOut(); location.reload(); };
+document.querySelectorAll('header [data-nav]').forEach(b => b.onclick = () => {
+  const n = b.dataset.nav;
+  if (n === 'works') goWorks(); else if (n === 'import') { setNav('import'); msg($('iMsg'), ''); show('vImport'); } else goEnt(n);
+});
+$('btnNew').onclick = () => openEdit(null);
+$('btnCancel').onclick = goWorks;
+$('btnSave').onclick = saveWork;
+$('btnDel').onclick = deleteWork;
+$('btnOneCard').onclick = () => editing && printCards([editing]);
+$('btnOneCoa').onclick = () => editing && printCoas([editing]);
+$('eArtist').onchange = () => fillWorkSelects(editing);
+$('eH').oninput = $('eW').oninput = $('eD').oninput = updInches;
+$('eThumbs').onclick = e => { const id = e.target.dataset?.pid; if (id) deletePhoto(id); };
+['fArtist','fStatus','fPlace','fExh'].forEach(id => $(id).onchange = renderList);
+$('fText').oninput = renderList;
+$('fOwnerBox').onclick = e => { if (e.target.id === 'clrOwner') { fOwner = null; renderList(); } };
+$('grid').onclick = e => {
+  if (e.target.classList.contains('sel')) { const id = e.target.dataset.id; e.target.checked ? selected.add(id) : selected.delete(id); renderList(); return; }
+  const card = e.target.closest('.work'); if (card) openEdit(works.find(w => w.id === card.dataset.id));
+};
+$('btnSelAll').onclick = () => { const f = filtered(); const all = f.length && f.every(w => selected.has(w.id)); f.forEach(w => all ? selected.delete(w.id) : selected.add(w.id)); renderList(); };
+$('btnSelClear').onclick = () => { selected.clear(); renderList(); };
+$('btnCards').onclick = () => printCards(printList());
+$('btnCoas').onclick = () => printCoas(printList());
+$('btnList').onclick = () => printPriceList(printList());
+$('btnBulk').onclick = applyBulk;
+$('entTable').onclick = e => {
+  const rows = entRows(curEnt);
+  if (e.target.dataset.edit) { entEditing = rows.find(r => r.id === e.target.dataset.edit); renderEntForm(); window.scrollTo(0, document.body.scrollHeight); }
+  if (e.target.dataset.show) ENT[curEnt].showWorks(rows.find(r => r.id === e.target.dataset.show));
+};
+$('btnEntSave').onclick = saveEnt;
+$('btnEntNew').onclick = () => { entEditing = null; renderEntForm(); };
+$('btnEntDel').onclick = deleteEnt;
+$('btnIRun').onclick = runImport;
+
+boot();
+</script>
+</body>
+</html>
