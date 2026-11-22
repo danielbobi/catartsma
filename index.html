@@ -76,6 +76,8 @@
   <button data-nav="clients" data-t="clients"></button>
   <button data-nav="artists" data-t="artists" class="adm hidden"></button>
   <button data-nav="import" data-t="import" class="adm hidden"></button>
+  <button data-nav="admins" data-t="admins" class="adm hidden"></button>
+  <button data-nav="team" data-t="team" id="navTeam" class="hidden"></button>
   <span class="sp"></span>
   <button id="btnLang"></button>
   <button id="btnOut" data-t="logout"></button>
@@ -176,6 +178,12 @@
     </div>
     <input id="eCam" type="file" accept="image/*" capture="environment" class="hidden">
     <input id="eFiles" type="file" accept="image/*" multiple class="hidden">
+    <label data-t="hires"></label>
+    <div style="display:flex;gap:8px"><input id="eHires" placeholder="https://… / carpeta"><a id="eHiresOpen" class="hidden" target="_blank" rel="noopener"><button type="button" data-t="open"></button></a></div>
+    <div class="muted" id="eHiresHint"></div>
+    <h3 data-t="prints"></h3>
+    <div id="ePrints" class="muted"></div>
+    <div class="toolbar" style="margin-top:6px"><button type="button" id="btnPrints" data-t="manageprints"></button></div>
     <div id="eHistWrap" class="hidden"><h3 data-t="history"></h3><ul class="hist" id="eHist"></ul></div>
     <div id="eMsg" class="msg hidden"></div>
     <div class="toolbar" style="margin-top:14px">
@@ -201,6 +209,61 @@
     </div>
   </section>
 
+  <section id="vPrints" class="panel hidden">
+    <div style="display:flex;gap:12px;align-items:center"><img id="pThumb" style="width:70px;height:70px;object-fit:contain;background:#f1efea;border-radius:6px"><div><h2 id="pHead" style="margin:0"></h2><div class="muted" id="pSub"></div></div></div>
+    <h3 data-t="prints"></h3>
+    <div style="overflow-x:auto"><table id="pTable"></table></div>
+    <h3 id="pFormHead"></h3>
+    <label data-t="pmedium"></label><input id="pMedium" list="pMediumList">
+    <datalist id="pMediumList"><option value="Giclée sobre papel de algodón"><option value="Giclée sobre canvas"><option value="Serigrafía"><option value="Litografía"><option value="Grabado"><option value="Impresión digital sobre papel"></datalist>
+    <div class="row">
+      <div><label data-t="height"></label><input id="pH" type="number" step="0.1" inputmode="decimal"></div>
+      <div><label data-t="width"></label><input id="pW" type="number" step="0.1" inputmode="decimal"></div>
+    </div>
+    <div class="muted" id="pInches"></div>
+    <div class="row">
+      <div><label data-t="pedition"></label><input id="pEd" type="number" inputmode="numeric"></div>
+      <div><label data-t="pap"></label><input id="pAP" type="number" inputmode="numeric"></div>
+      <div><label data-t="pprinted"></label><input id="pPrinted" type="number" inputmode="numeric"></div>
+      <div><label data-t="psold"></label><input id="pSold" type="number" inputmode="numeric"></div>
+    </div>
+    <div class="row">
+      <div><label data-t="price"></label><input id="pPrice" type="number" step="1" inputmode="decimal"></div>
+      <div><label data-t="pprinter"></label><input id="pPrinter"></div>
+      <div><label data-t="pdate"></label><input id="pDate" type="date"></div>
+    </div>
+    <label data-t="notes"></label><textarea id="pNotes" rows="2"></textarea>
+    <div id="pMsg" class="msg hidden"></div>
+    <div id="pCopiesWrap" class="hidden">
+      <h3 data-t="copies"></h3>
+      <div class="toolbar">
+        <button type="button" id="btnGenCopies" data-t="gencopies"></button>
+        <button type="button" id="btnCopySelAll" data-t="selectall"></button>
+        <button type="button" id="btnCopyCoas"></button>
+        <span class="muted" id="cMsg"></span>
+      </div>
+      <div style="overflow-x:auto"><table id="cTable"></table></div>
+    </div>
+    <div class="toolbar" style="margin-top:12px">
+      <button class="primary" id="btnPSave" data-t="save"></button>
+      <button id="btnPNew" data-t="addnew"></button>
+      <button class="danger hidden" id="btnPDel" data-t="delete"></button>
+      <button id="btnPBack" data-t="back"></button>
+    </div>
+  </section>
+
+  <section id="vTeam" class="panel hidden">
+    <h2 id="tHead"></h2>
+    <p class="muted" id="tHelp"></p>
+    <div id="tArtistWrap" class="hidden"><label data-t="artist"></label><select id="tArtist"></select></div>
+    <table id="tTable" style="margin-top:8px"></table>
+    <div class="row" style="margin-top:10px">
+      <div><label data-t="email"></label><input id="tEmail" type="email" placeholder="nombre@correo.com"></div>
+    </div>
+    <div id="tMsg" class="msg hidden"></div>
+    <div class="toolbar" style="margin-top:10px"><button class="primary" id="btnTAdd" data-t="add"></button></div>
+  </section>
+
   <section id="vImport" class="panel hidden">
     <h2 data-t="importhead"></h2>
     <p class="muted" data-t="importhelp"></p>
@@ -222,7 +285,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const T = {
   es: { email:'Correo', password:'Contraseña', signin:'Entrar', signup:'Crear cuenta', logout:'Salir', artists:'Artistas', import:'Importar',
-    works_t:'Obras', takephoto:'Tomar foto', choosephotos:'Elegir fotos', newphoto:'nueva', pickworks:'Obras en esta exposición', pickall:'Todas / ninguna', exhibitions:'Exposiciones', places:'Lugares', clients:'Clientes',
+    works_t:'Obras', copies:'Ejemplares', gencopies:'Generar ejemplares (1…tiraje + P/A)', copy:'Ejemplar', cst_available:'Disponible', cst_reserved:'Reservado', cst_sold:'Vendido', cst_gift:'Regalo', cst_artist:'Del artista', needsize:'Primero indica el tiraje y guarda la edición.',  hires:'Fotos en alta resolución (enlace o carpeta)', open:'Abrir', hiresfolder:'Carpeta de fotos en alta resolución', hireshint:'Carpeta general del artista: ', prints:'Reproducciones', manageprints:'Ver / editar reproducciones', savefirst:'Guarda la obra primero para agregar reproducciones.', noprints:'Sin reproducciones.', editions:'ediciones', edition1:'edición', pmedium:'Técnica de impresión / soporte', pedition:'Tiraje (ejemplares)', pap:'Pruebas de artista (P/A)', pprinted:'Impresos hasta hoy', psold:'Vendidos', pprinter:'Taller / impresor', pdate:'Fecha de impresión', back:'Volver', available_n:'disponibles', newedition:'Nueva edición', editedition:'Editar edición',  team:'Equipo', admins:'Admins', add:'Agregar', remove:'Quitar', you:'(tú)', owner_t:'(artista)', teamhelp:'Personas que pueden manejar tu cuenta: ven y editan solo tus obras, lugares, clientes y exposiciones. Agrega su correo; luego ellas crean su cuenta en la app con ese mismo correo.', adminshelp:'Los administradores ven y manejan todo, de todos los artistas. Agrega su correo; luego crean su cuenta en la app con ese correo.', takephoto:'Tomar foto', choosephotos:'Elegir fotos', newphoto:'nueva', pickworks:'Obras en esta exposición', pickall:'Todas / ninguna', exhibitions:'Exposiciones', places:'Lugares', clients:'Clientes',
     new:'+ Nueva obra', selectall:'Seleccionar todo', clearsel:'Quitar selección', printcards:'Fichas', printcoas:'Certificados', pricelist:'Lista de precios',
     artist:'Artista', title:'Título', year:'Año', code:'Código', technique:'Técnica', support:'Soporte',
     height:'Alto (cm)', width:'Ancho (cm)', depth:'Fondo (cm)', fheight:'Alto con marco (cm)', fwidth:'Ancho con marco (cm)', fdepth:'Fondo con marco (cm)',
@@ -245,7 +308,7 @@ const T = {
     importfiles:'Fotos', importrun:'Importar', importdone:'Listo: {n} obras importadas.', importexists:'Este artista ya tiene obras; no se importó nada.',
     inches:'Pulgadas', unique:'Única' },
   en: { email:'Email', password:'Password', signin:'Sign in', signup:'Create account', logout:'Sign out', artists:'Artists', import:'Import',
-    works_t:'Works', takephoto:'Take photo', choosephotos:'Choose photos', newphoto:'new', pickworks:'Works in this exhibition', pickall:'All / none', exhibitions:'Exhibitions', places:'Places', clients:'Clients',
+    works_t:'Works', copies:'Copies', gencopies:'Create copies (1…edition + AP)', copy:'Copy', cst_available:'Available', cst_reserved:'Reserved', cst_sold:'Sold', cst_gift:'Gift', cst_artist:'Artist’s', needsize:'First enter the edition size and save the edition.',  hires:'High-res photos (link or folder)', open:'Open', hiresfolder:'High-res photos folder', hireshint:'Artist’s general folder: ', prints:'Prints', manageprints:'View / edit prints', savefirst:'Save the work first to add prints.', noprints:'No prints.', editions:'editions', edition1:'edition', pmedium:'Print technique / support', pedition:'Edition size', pap:'Artist’s proofs (AP)', pprinted:'Printed so far', psold:'Sold', pprinter:'Print studio', pdate:'Print date', back:'Back', available_n:'available', newedition:'New edition', editedition:'Edit edition',  team:'Team', admins:'Admins', add:'Add', remove:'Remove', you:'(you)', owner_t:'(artist)', teamhelp:'People who can manage your account: they see and edit only your works, places, clients and exhibitions. Add their email; then they create their account in the app with that same email.', adminshelp:'Admins see and manage everything, for every artist. Add their email; then they create their account in the app with that email.', takephoto:'Take photo', choosephotos:'Choose photos', newphoto:'new', pickworks:'Works in this exhibition', pickall:'All / none', exhibitions:'Exhibitions', places:'Places', clients:'Clients',
     new:'+ New work', selectall:'Select all', clearsel:'Clear', printcards:'Cards', printcoas:'Certificates', pricelist:'Price list',
     artist:'Artist', title:'Title', year:'Year', code:'Code', technique:'Technique', support:'Support',
     height:'Height (cm)', width:'Width (cm)', depth:'Depth (cm)', fheight:'Framed height (cm)', fwidth:'Framed width (cm)', fdepth:'Framed depth (cm)',
@@ -290,12 +353,12 @@ function sizeText(w, withIn = true, framed = false) {
   const cm = d.map(fmtNum).join(' x ') + ' cm';
   return withIn ? cm + '  ·  ' + d.map(inch).join(' x ') + ' in' : cm;
 }
-const VIEWS = ['vLogin','vNoLink','vList','vEdit','vEnt','vImport'];
+const VIEWS = ['vLogin','vNoLink','vList','vEdit','vEnt','vImport','vTeam','vPrints'];
 function show(id) { VIEWS.forEach(v => $(v).classList.toggle('hidden', v !== id)); window.scrollTo(0,0); }
 function msg(el, text, isErr) { el.textContent = text; el.classList.toggle('err', !!isErr); el.classList.toggle('hidden', !text); }
 function setNav(name) { document.querySelectorAll('header [data-nav]').forEach(b => b.classList.toggle('cur', b.dataset.nav === name)); }
 
-async function resizeImage(file, max = 1800) {
+async function resizeImage(file, max = 2600) {
   const url = URL.createObjectURL(file);
   try {
     const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; });
@@ -303,7 +366,7 @@ async function resizeImage(file, max = 1800) {
     const c = document.createElement('canvas');
     c.width = Math.round(img.naturalWidth * s); c.height = Math.round(img.naturalHeight * s);
     c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-    return await new Promise(res => c.toBlob(res, 'image/jpeg', 0.86));
+    return await new Promise(res => c.toBlob(res, 'image/jpeg', 0.9));
   } finally { URL.revokeObjectURL(url); }
 }
 async function uploadPhotos(work, files, startSort = 0) {
@@ -318,7 +381,7 @@ async function uploadPhotos(work, files, startSort = 0) {
   }
 }
 
-let me = null, isAdmin = false, myArtist = null;
+let me = null, isAdmin = false, myArtist = null, isOwner = false, teamMode = 'team';
 let artists = [], places = [], clients = [], exhibitions = [], works = [];
 let selected = new Set(), editing = null, fOwner = null, pending = [];
 let curEnt = null, entEditing = null;
@@ -338,9 +401,12 @@ async function enter(session) {
   $('eArtistWrap').classList.toggle('hidden', !isAdmin);
   await loadAll();
   if (!isAdmin) {
-    myArtist = artists.find(x => (x.email || '').toLowerCase() === (me.email || '').toLowerCase());
+    const mid = await sb.rpc('my_artist_id');
+    myArtist = artists.find(x => x.id === mid.data);
     if (!myArtist) { show('vNoLink'); return; }
+    isOwner = (myArtist.email || '').toLowerCase() === (me.email || '').toLowerCase();
   }
+  $('navTeam').classList.toggle('hidden', !(isAdmin || isOwner));
   goWorks();
 }
 async function loadAll() {
@@ -355,8 +421,8 @@ async function loadAll() {
   fillFilters();
 }
 async function loadWorks() {
-  const r = await sb.from('works').select('*, artists(name, city), photos(id,path,sort), exhibition_works(exhibition_id)').order('code');
-  works = (r.data || []).map(w => ({ ...w, photos: (w.photos || []).sort((a,b) => a.sort - b.sort), exh: (w.exhibition_works || []).map(x => x.exhibition_id) }));
+  const r = await sb.from('works').select('*, artists(name, city), photos(id,path,sort), exhibition_works(exhibition_id), print_editions(*, print_copies(*))').order('code');
+  works = (r.data || []).map(w => ({ ...w, eds: (w.print_editions || []).sort((a,b) => (a.created_at > b.created_at ? 1 : -1)).map(e => ({ ...e, copies: (e.print_copies || []).sort((a,b) => (a.kind === b.kind ? a.number - b.number : (a.kind === 'numbered' ? -1 : 1))) })), photos: (w.photos || []).sort((a,b) => a.sort - b.sort), exh: (w.exhibition_works || []).map(x => x.exhibition_id) }));
   const techs = [...new Set(works.map(w => w.technique).filter(Boolean))];
   $('techList').innerHTML = techs.map(x => `<option value="${esc(x)}">`).join('');
 }
@@ -416,7 +482,7 @@ function renderList() {
       <div class="muted">${esc(w.code || '')}${isAdmin && w.artists ? ' · ' + esc(w.artists.name) : ''}</div>
       <div>${esc(sizeText(w, false))}</div>
       <div class="muted">${esc(placeName(w.place_id))}${w.owner_client_id ? ' · ' + esc(clientName(w.owner_client_id)) : ''}</div>
-      <div>${usd(w.price_usd)} <span class="badge b-${w.status}">${t('st_' + w.status)}</span></div></div></div>`;
+      <div>${usd(w.price_usd)} <span class="badge b-${w.status}">${t('st_' + w.status)}</span>${w.eds.length ? ` <span class="badge">🖨 ${w.eds.length} ${w.eds.length === 1 ? t('edition1') : t('editions')}</span>` : ''}</div></div></div>`;
   }).join('');
 }
 async function applyBulk() {
@@ -456,6 +522,7 @@ async function openEdit(w) {
   v('eH', w?.height_cm); v('eW', w?.width_cm); v('eD', w?.depth_cm);
   v('eFH', w?.framed_height_cm); v('eFW', w?.framed_width_cm); v('eFD', w?.framed_depth_cm);
   v('eSig', w?.signature); v('ePrice', w?.price_usd); $('eStatus').value = w?.status || 'available';
+  v('eHires', w?.hires_url); updHires(); renderPrintSummary(w);
   v('eCons', w?.date_consigned); v('eSold', w?.sold_date); v('eSale', w?.sale_price_usd); v('eNotes', w?.notes);
   $('eFiles').value = ''; $('eCam').value = ''; pending = []; renderPending();
   fillWorkSelects(w);
@@ -470,6 +537,24 @@ async function openEdit(w) {
     $('eHistWrap').classList.toggle('hidden', !rows.length);
   }
 }
+function updHires() {
+  const v = $('eHires').value.trim();
+  $('eHiresOpen').classList.toggle('hidden', !/^https?:\/\//i.test(v));
+  $('eHiresOpen').href = v;
+  const a = artists.find(x => x.id === artistOf());
+  $('eHiresHint').textContent = a?.hires_folder ? t('hireshint') + a.hires_folder : '';
+}
+function edSize(e) { const d = [e.height_cm, e.width_cm].filter(x => x != null); return d.length ? d.map(fmtNum).join(' x ') + ' cm (' + d.map(inch).join(' x ') + ' in)' : ''; }
+function edLine(e) {
+  const avail = e.copies?.length ? e.copies.filter(c => c.kind === 'numbered' && c.status === 'available').length : (e.edition_size != null ? Math.max(0, e.edition_size - (e.sold_count || 0)) : null);
+  return [e.medium, edSize(e), e.edition_size != null ? `${t('pedition')}: ${e.edition_size}` + (e.ap_count ? ` + ${e.ap_count} P/A` : '') : '',
+          avail != null ? `${avail} ${t('available_n')}` : '', usd(e.price_usd)].filter(Boolean).join(' · ');
+}
+function renderPrintSummary(w) {
+  $('btnPrints').classList.toggle('hidden', !w);
+  if (!w) { $('ePrints').textContent = t('savefirst'); return; }
+  $('ePrints').innerHTML = w.eds.length ? '<ul style="margin:4px 0;padding-left:18px">' + w.eds.map(e => `<li>${esc(edLine(e))}</li>`).join('') + '</ul>' : t('noprints');
+}
 function updInches() {
   const d = [$('eH').value, $('eW').value, $('eD').value].filter(v => v !== '').map(Number);
   $('eInches').textContent = d.length ? `${t('inches')}: ${d.map(inch).join(' x ')} in` : '';
@@ -482,7 +567,7 @@ function renderThumbs() {
   const ps = editing?.photos || [];
   $('eThumbs').innerHTML = ps.map(p => `<div><img src="${photoUrl(p.path)}"><button data-pid="${p.id}">✕</button></div>`).join('');
 }
-async function saveWork() {
+async function saveWork(stay = false) {
   const title = $('eTitle').value.trim();
   if (!title) { msg($('eMsg'), t('needtitle'), true); return; }
   $('btnSave').disabled = true; msg($('eMsg'), t('saving'));
@@ -494,7 +579,7 @@ async function saveWork() {
     signature: s('eSig'), price_usd: num($('ePrice').value), status: $('eStatus').value,
     place_id: $('ePlace').value || null, date_consigned: $('eCons').value || null,
     owner_client_id: $('eOwner').value || null, sold_date: $('eSold').value || null, sale_price_usd: num($('eSale').value),
-    notes: s('eNotes')
+    notes: s('eNotes'), hires_url: s('eHires')
   };
   try {
     const r = editing ? await sb.from('works').update(rec).eq('id', editing.id).select().single()
@@ -509,7 +594,9 @@ async function saveWork() {
     const files = pending.map(p => p.file);
     if (files.length) await uploadPhotos(w, files, (editing?.photos?.length || 0));
     pending = [];
-    await loadWorks(); goWorks();
+    await loadWorks();
+    if (stay) { editing = works.find(x => x.id === w.id); return true; }
+    goWorks();
   } catch (e) { msg($('eMsg'), e.message || String(e), true); }
   finally { $('btnSave').disabled = false; }
 }
@@ -627,7 +714,7 @@ const ENT = {
     cols:[['name','name'],['email','email'],['city','city']], countBy:c => works.filter(w => w.owner_client_id === c.id).length,
     showWorks:c => { resetFilters(); fOwner = c.id; goWorks(); } },
   artists: { table:'artists', title:'artists', owner:false,
-    fields:[['name','name','text'],['email','email','email'],['code_prefix','prefix','text'],['city','city','text'],['commission_pct','commission','number'],['phone','phone','text'],['bio','bio','textarea']],
+    fields:[['name','name','text'],['email','email','email'],['code_prefix','prefix','text'],['city','city','text'],['commission_pct','commission','number'],['phone','phone','text'],['hires_folder','hiresfolder','text'],['bio','bio','textarea']],
     cols:[['name','name'],['email','email'],['code_prefix','prefix'],['city','city']], countBy:a => works.filter(w => w.artist_id === a.id).length,
     showWorks:a => { resetFilters(); $('fArtist').value = a.id; goWorks(); } }
 };
@@ -712,6 +799,162 @@ async function deleteEnt() {
   await loadAll(); entEditing = null; renderEnt();
 }
 
+// ---------- prints (editions) ----------
+let pWork = null, pEditing = null;
+function goPrints() {
+  pWork = editing; if (!pWork) return;
+  $('pHead').textContent = pWork.title + (pWork.year ? ', ' + pWork.year : '');
+  $('pSub').textContent = [pWork.code, pWork.technique, sizeText(pWork, false)].filter(Boolean).join(' · ');
+  $('pThumb').src = pWork.photos[0] ? photoUrl(pWork.photos[0].path) : '';
+  pEditing = null; renderPrints(); show('vPrints');
+}
+function renderPrints() {
+  const eds = (works.find(w => w.id === pWork.id) || pWork).eds;
+  $('pTable').innerHTML = eds.length
+    ? `<tr><th>${t('pmedium')}</th><th>cm / in</th><th>${t('pedition')}</th><th>P/A</th><th>${t('pprinted')}</th><th>${t('psold')}</th><th>${t('price')}</th><th></th></tr>` +
+      eds.map(e => `<tr><td>${esc(e.medium || '')}</td><td>${esc(edSize(e))}</td><td>${e.edition_size ?? ''}</td><td>${e.ap_count ?? ''}</td><td>${e.printed_count ?? ''}</td><td>${e.sold_count ?? ''}</td><td>${usd(e.price_usd)}</td><td><button data-ped="${e.id}">${t('edit')}</button></td></tr>`).join('')
+    : `<tr><td class="muted">${t('noprints')}</td></tr>`;
+  fillPrintForm(pEditing);
+}
+function fillPrintForm(e) {
+  pEditing = e || null;
+  $('pFormHead').textContent = e ? t('editedition') : t('newedition');
+  const v = (id, x) => $(id).value = x ?? '';
+  v('pMedium', e?.medium); v('pH', e?.height_cm); v('pW', e?.width_cm); v('pEd', e?.edition_size); v('pAP', e?.ap_count);
+  v('pPrinted', e?.printed_count); v('pSold', e?.sold_count); v('pPrice', e?.price_usd); v('pPrinter', e?.printer); v('pDate', e?.print_date); v('pNotes', e?.notes);
+  $('btnPDel').classList.toggle('hidden', !e); updPInches(); msg($('pMsg'), '');
+  if ((e?.id || null) !== lastEdId) copySel = new Set();
+  lastEdId = e?.id || null; renderCopies();
+}
+function updPInches() { const d = [$('pH').value, $('pW').value].filter(v => v !== '').map(Number); $('pInches').textContent = d.length ? `${t('inches')}: ${d.map(inch).join(' x ')} in` : ''; }
+async function savePrint() {
+  const s = id => $(id).value.trim() || null;
+  const rec = { work_id: pWork.id, medium: s('pMedium'), height_cm: num($('pH').value), width_cm: num($('pW').value),
+    edition_size: num($('pEd').value), ap_count: num($('pAP').value), printed_count: num($('pPrinted').value), sold_count: num($('pSold').value),
+    price_usd: num($('pPrice').value), printer: s('pPrinter'), print_date: $('pDate').value || null, notes: s('pNotes') };
+  if (!rec.medium && rec.edition_size == null) { msg($('pMsg'), t('needname'), true); return; }
+  const r = pEditing ? await sb.from('print_editions').update(rec).eq('id', pEditing.id).select().single() : await sb.from('print_editions').insert(rec).select().single();
+  if (r.error) { msg($('pMsg'), r.error.message, true); return; }
+  await loadWorks(); pEditing = curEd(r.data.id); renderPrints(); msg($('pMsg'), t('saved'));
+}
+async function deletePrint() {
+  if (!pEditing || !confirm(t('confirmdel'))) return;
+  const r = await sb.from('print_editions').delete().eq('id', pEditing.id);
+  if (r.error) { msg($('pMsg'), r.error.message, true); return; }
+  await loadWorks(); pEditing = null; renderPrints();
+}
+let copySel = new Set(), lastEdId = null;
+const curWork = () => works.find(w => w.id === pWork.id) || pWork;
+const curEd = id => curWork().eds.find(e => e.id === id) || null;
+const copyLabel = (c, e) => c.kind === 'ap' ? `P/A ${c.number}` : `${c.number}/${e.edition_size ?? '?'}`;
+function renderCopies() {
+  const e = pEditing;
+  $('pCopiesWrap').classList.toggle('hidden', !e);
+  if (!e) return;
+  const cl = clients.filter(c => c.artist_id === curWork().artist_id);
+  const n = copySel.size ? ` (${copySel.size})` : '';
+  $('btnCopyCoas').textContent = t('printcoas') + n;
+  $('cTable').innerHTML = e.copies.length ? `<tr><th></th><th>${t('copy')}</th><th>${t('status')}</th><th>${t('owner')}</th><th>${t('solddate')}</th><th>${t('saleprice')}</th><th>${t('coa')}</th></tr>` +
+    e.copies.map(c => `<tr data-cid="${c.id}">
+      <td><input type="checkbox" class="csel" ${copySel.has(c.id) ? 'checked' : ''}></td>
+      <td style="white-space:nowrap"><b>${esc(copyLabel(c, e))}</b></td>
+      <td><select data-f="status">${['available','reserved','sold','gift','artist'].map(st => opt(st, t('cst_' + st), c.status === st)).join('')}</select></td>
+      <td><select data-f="owner_client_id">${opt('', t('none'))}${cl.map(x => opt(x.id, x.name, c.owner_client_id === x.id)).join('')}</select></td>
+      <td><input type="date" data-f="sold_date" value="${esc(c.sold_date || '')}"></td>
+      <td><input type="number" data-f="sale_price_usd" value="${c.sale_price_usd ?? ''}" style="width:7em"></td>
+      <td class="muted" style="white-space:nowrap">${c.coa_issued ? fmtDate(c.coa_issued) : ''}</td></tr>`).join('')
+    : `<tr><td class="muted">—</td></tr>`;
+}
+async function genCopies() {
+  const e = pEditing; if (!e) return;
+  if (!e.edition_size) { $('cMsg').textContent = t('needsize'); return; }
+  const have = new Set(e.copies.map(c => c.kind + ':' + c.number));
+  const rows = [];
+  for (let i = 1; i <= e.edition_size; i++) if (!have.has('numbered:' + i)) rows.push({ edition_id: e.id, kind: 'numbered', number: i });
+  for (let i = 1; i <= (e.ap_count || 0); i++) if (!have.has('ap:' + i)) rows.push({ edition_id: e.id, kind: 'ap', number: i });
+  if (rows.length) { const r = await sb.from('print_copies').insert(rows); if (r.error) { $('cMsg').textContent = r.error.message; return; } }
+  await loadWorks(); pEditing = curEd(e.id); renderPrints(); $('cMsg').textContent = t('saved');
+}
+async function saveCopyField(cid, field, value) {
+  const upd = { [field]: value === '' ? null : (field === 'sale_price_usd' ? Number(value) : value) };
+  if (field === 'owner_client_id' && value) { const c = pEditing.copies.find(x => x.id === cid); if (c && c.status === 'available') upd.status = 'sold'; }
+  const r = await sb.from('print_copies').update(upd).eq('id', cid);
+  if (r.error) { $('cMsg').textContent = r.error.message; return; }
+  const id = pEditing.id; await loadWorks(); pEditing = curEd(id); renderPrints(); $('cMsg').textContent = t('saved');
+}
+async function printCopyCoas() {
+  const e = pEditing; if (!e) return;
+  const list = copySel.size ? e.copies.filter(c => copySel.has(c.id)) : e.copies;
+  if (!list.length) { alert(t('nothingsel')); return; }
+  const w = curWork(), a = artists.find(x => x.id === w.artist_id) || {};
+  const today = new Date().toISOString().slice(0, 10);
+  const dEs = d => new Date(d + 'T12:00:00').toLocaleDateString('es-MX', { year:'numeric', month:'long', day:'numeric' });
+  const head = coasHtml([], today)[0];
+  const body = list.map(c => {
+    const rows = [
+      ['Artista / Artist', a.name],
+      ['Obra original / Original work', w.title + (w.year ? ', ' + w.year : '')],
+      ['Técnica / Medium', e.medium],
+      ['Medidas / Size', edSize(e)],
+      ['Ejemplar / Print no.', copyLabel(c, e) + (c.kind === 'ap' ? '' : (e.ap_count ? `  (+ ${e.ap_count} P/A)` : ''))],
+      ['Impresor / Printer', e.printer],
+      ['Fecha de impresión / Printed', e.print_date ? dEs(e.print_date) : ''],
+      ['Registro / Inventory no.', (w.code || '') + ' · ' + copyLabel(c, e)],
+      c.owner_client_id ? ['Propietario / Owner', clientName(c.owner_client_id)] : null
+    ].filter(r => r && r[1]);
+    const issued = c.coa_issued || today;
+    return `<div class="sq">
+      <div class="hd"><div class="a">CERTIFICADO DE AUTENTICIDAD</div><div class="b">CERTIFICATE OF AUTHENTICITY · REPRODUCCIÓN / PRINT</div><div class="rule"></div></div>
+      <div class="img">${w.photos[0] ? `<img src="${photoUrl(w.photos[0].path)}">` : ''}</div>
+      <div class="ttl">${esc(w.title)}${w.year ? ', ' + w.year : ''}</div>
+      <table>${rows.map(r => `<tr><td class="k">${r[0]}</td><td>${esc(r[1])}</td></tr>`).join('')}</table>
+      <div class="st">Certifico que esta reproducción, numerada y firmada, forma parte de una edición limitada${e.edition_size ? ' de ' + e.edition_size + ' ejemplares' : ''} realizada con mi autorización.<br>
+        <i>I certify that this signed and numbered print is part of a limited edition${e.edition_size ? ' of ' + e.edition_size : ''} made with my authorization.</i></div>
+      <div class="sig"><div class="pd">${esc(a.city || '')}${a.city ? ', ' : ''}${dEs(issued)}</div><div class="line">${esc(a.name || '')}</div></div>
+    </div>`;
+  }).join('');
+  printWindow(head, body);
+  const toMark = list.filter(c => !c.coa_issued).map(c => c.id);
+  if (toMark.length) { await sb.from('print_copies').update({ coa_issued: today }).in('id', toMark); const id = e.id; await loadWorks(); pEditing = curEd(id); renderCopies(); }
+}
+function backFromPrints() { openEdit(works.find(w => w.id === pWork.id) || pWork); }
+
+// ---------- team (artist helpers) and admins ----------
+async function goTeam(mode) {
+  teamMode = mode; setNav(mode);
+  $('tHead').textContent = t(mode); $('tHelp').textContent = t(mode + 'help');
+  $('tArtistWrap').classList.toggle('hidden', !(mode === 'team' && isAdmin));
+  if (mode === 'team' && isAdmin) { const cur = $('tArtist').value; $('tArtist').innerHTML = artists.map(a => opt(a.id, a.name)).join(''); if (cur) $('tArtist').value = cur; }
+  $('tEmail').value = ''; msg($('tMsg'), '');
+  show('vTeam'); await renderTeam();
+}
+const teamArtist = () => isAdmin ? $('tArtist').value : myArtist.id;
+async function renderTeam() {
+  let rows = [], head = '';
+  if (teamMode === 'admins') {
+    rows = (await sb.from('admins').select('email').order('email')).data || [];
+    $('tTable').innerHTML = rows.map(r => `<tr><td>${esc(r.email)}</td><td style="text-align:right">${r.email.toLowerCase() === me.email.toLowerCase() ? `<span class="muted">${t('you')}</span>` : `<button class="danger" data-rm="${esc(r.email)}">${t('remove')}</button>`}</td></tr>`).join('');
+  } else {
+    const aid = teamArtist(); const a = artists.find(x => x.id === aid);
+    rows = (await sb.from('artist_members').select('email').eq('artist_id', aid).order('email')).data || [];
+    head = a?.email ? `<tr><td>${esc(a.email)}</td><td style="text-align:right" class="muted">${t('owner_t')}</td></tr>` : '';
+    $('tTable').innerHTML = head + rows.map(r => `<tr><td>${esc(r.email)}</td><td style="text-align:right"><button class="danger" data-rm="${esc(r.email)}">${t('remove')}</button></td></tr>`).join('');
+  }
+}
+async function teamAdd() {
+  const email = $('tEmail').value.trim().toLowerCase();
+  if (!/^\S+@\S+\.\S+$/.test(email)) { msg($('tMsg'), t('needname'), true); return; }
+  const r = teamMode === 'admins' ? await sb.from('admins').insert({ email }) : await sb.from('artist_members').insert({ artist_id: teamArtist(), email });
+  if (r.error) { msg($('tMsg'), r.error.message, true); return; }
+  $('tEmail').value = ''; msg($('tMsg'), t('saved')); renderTeam();
+}
+async function teamRemove(email) {
+  if (!confirm(t('confirmdel'))) return;
+  const r = teamMode === 'admins' ? await sb.from('admins').delete().eq('email', email) : await sb.from('artist_members').delete().eq('artist_id', teamArtist()).eq('email', email);
+  if (r.error) { msg($('tMsg'), r.error.message, true); return; }
+  renderTeam();
+}
+
 // ---------- import ----------
 const CECILIA = [
   ['DOS VERSOS',2026,'Acrilico sobre tela de algodon',140,260,9000,'dos versos.jpeg'],
@@ -764,11 +1007,12 @@ $('btnSignup').onclick = async () => {
 $('btnOut').onclick = async () => { await sb.auth.signOut(); location.reload(); };
 document.querySelectorAll('header [data-nav]').forEach(b => b.onclick = () => {
   const n = b.dataset.nav;
+  if (n === 'team' || n === 'admins') { goTeam(n); return; }
   if (n === 'works') goWorks(); else if (n === 'import') { setNav('import'); msg($('iMsg'), ''); show('vImport'); } else goEnt(n);
 });
 $('btnNew').onclick = () => openEdit(null);
 $('btnCancel').onclick = goWorks;
-$('btnSave').onclick = saveWork;
+$('btnSave').onclick = () => saveWork();
 $('btnDel').onclick = deleteWork;
 $('btnOneCard').onclick = () => editing && printCards([editing]);
 $('btnOneCoa').onclick = () => editing && printCoas([editing]);
@@ -802,6 +1046,25 @@ $('btnEntSave').onclick = saveEnt;
 $('btnEntNew').onclick = () => { entEditing = null; renderEntForm(); };
 $('btnEntDel').onclick = deleteEnt;
 $('btnIRun').onclick = runImport;
+$('btnTAdd').onclick = teamAdd;
+$('eHires').oninput = updHires;
+$('btnPrints').onclick = async () => { if (await saveWork(true)) goPrints(); };
+$('btnPSave').onclick = savePrint;
+$('btnPNew').onclick = () => fillPrintForm(null);
+$('btnPDel').onclick = deletePrint;
+$('btnPBack').onclick = backFromPrints;
+$('pH').oninput = $('pW').oninput = updPInches;
+$('btnGenCopies').onclick = genCopies;
+$('btnCopyCoas').onclick = printCopyCoas;
+$('btnCopySelAll').onclick = () => { const all = pEditing.copies.length && pEditing.copies.every(c => copySel.has(c.id)); pEditing.copies.forEach(c => all ? copySel.delete(c.id) : copySel.add(c.id)); renderCopies(); };
+$('cTable').onchange = e => {
+  const tr = e.target.closest('tr'); const cid = tr?.dataset.cid; if (!cid) return;
+  if (e.target.classList.contains('csel')) { e.target.checked ? copySel.add(cid) : copySel.delete(cid); renderCopies(); return; }
+  if (e.target.dataset.f) saveCopyField(cid, e.target.dataset.f, e.target.value);
+};
+$('pTable').onclick = e => { const id = e.target.dataset?.ped; if (id) { const w = works.find(x => x.id === pWork.id) || pWork; fillPrintForm(w.eds.find(x => x.id === id)); } };
+$('tArtist').onchange = renderTeam;
+$('tTable').onclick = e => { const em = e.target.dataset?.rm; if (em) teamRemove(em); };
 
 boot();
 </script>
