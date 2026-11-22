@@ -6,7 +6,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#1f1f1f">
-<title>Catartsma</title>
+<meta name="apple-mobile-web-app-title" content="Mira">
+<title>Mira</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -72,7 +73,7 @@
 </head>
 <body>
 <header id="hdr" class="hidden">
-  <h1>Catartsma</h1>
+  <h1>Mira</h1>
   <button data-nav="works" data-t="works_t"></button>
   <button data-nav="exhibitions" data-t="exhibitions"></button>
   <button data-nav="places" data-t="places"></button>
@@ -82,13 +83,15 @@
   <button data-nav="admins" data-t="admins" class="adm hidden"></button>
   <button data-nav="team" data-t="team" id="navTeam" class="hidden"></button>
   <span class="sp"></span>
+  <button id="btnCur" title="US$ / MX$"></button>
+  <button id="btnUnit" title="cm / in"></button>
   <button id="btnLang"></button>
   <button id="btnOut" data-t="logout"></button>
 </header>
 
 <main>
   <section id="vLogin" class="panel hidden" style="max-width:380px;margin-top:40px">
-    <h2>Catartsma</h2>
+    <h2>Mira</h2>
     <label data-t="email"></label><input id="lEmail" type="email" autocomplete="username">
     <label data-t="password"></label><input id="lPass" type="password" autocomplete="current-password">
     <div class="toolbar" style="margin-top:14px">
@@ -113,6 +116,7 @@
     <div class="toolbar" id="fOwnerBox"></div>
     <div class="toolbar">
       <span class="count" id="count"></span>
+      <span class="count" id="rateInfo" style="cursor:pointer;text-decoration:underline dotted"></span>
       <button id="btnSelAll" data-t="selectall"></button>
       <button id="btnSelClear" data-t="clearsel"></button>
       <button id="btnCards"></button>
@@ -158,7 +162,7 @@
     </div>
     <label data-t="signature"></label><input id="eSig">
     <div class="row">
-      <div><label data-t="price"></label><input id="ePrice" type="number" step="1" inputmode="decimal"></div>
+      <div><label data-t="price"></label><input id="ePrice" type="number" step="1" inputmode="decimal"><div class="muted" id="ePriceHint"></div></div>
       <div><label data-t="status"></label><select id="eStatus"></select></div>
     </div>
     <div class="row">
@@ -168,7 +172,7 @@
     <div class="row">
       <div><label data-t="owner"></label><select id="eOwner"></select></div>
       <div><label data-t="solddate"></label><input id="eSold" type="date"></div>
-      <div><label data-t="saleprice"></label><input id="eSale" type="number" step="1" inputmode="decimal"></div>
+      <div><label data-t="saleprice"></label><input id="eSale" type="number" step="1" inputmode="decimal"><div class="muted" id="eSaleHint"></div></div>
     </div>
     <label data-t="exhibitions"></label><div class="chips" id="eExhs"></div>
     <label data-t="notes"></label><textarea id="eNotes" rows="3"></textarea>
@@ -218,7 +222,7 @@
     <div style="overflow-x:auto"><table id="pTable"></table></div>
     <h3 id="pFormHead"></h3>
     <label data-t="pmedium"></label><input id="pMedium" list="pMediumList">
-    <datalist id="pMediumList"><option value="Giclée sobre papel de algodón"><option value="Giclée sobre canvas"><option value="Serigrafía"><option value="Litografía"><option value="Grabado"><option value="Impresión digital sobre papel"></datalist>
+    <datalist id="pMediumList"></datalist>
     <div class="row">
       <div><label data-t="height"></label><input id="pH" type="number" step="0.1" inputmode="decimal"></div>
       <div><label data-t="width"></label><input id="pW" type="number" step="0.1" inputmode="decimal"></div>
@@ -231,7 +235,7 @@
       <div><label data-t="psold"></label><input id="pSold" type="number" inputmode="numeric"></div>
     </div>
     <div class="row">
-      <div><label data-t="price"></label><input id="pPrice" type="number" step="1" inputmode="decimal"></div>
+      <div><label data-t="price"></label><input id="pPrice" type="number" step="1" inputmode="decimal"><div class="muted" id="pPriceHint"></div></div>
       <div><label data-t="pprinter"></label><input id="pPrinter"></div>
       <div><label data-t="pdate"></label><input id="pDate" type="date"></div>
     </div>
@@ -288,7 +292,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const T = {
   es: { email:'Correo', password:'Contraseña', signin:'Entrar', signup:'Crear cuenta', logout:'Salir', artists:'Artistas', import:'Importar',
-    works_t:'Obras', copies:'Ejemplares', gencopies:'Generar ejemplares (1…tiraje + P/A)', copy:'Ejemplar', cst_available:'Disponible', cst_reserved:'Reservado', cst_sold:'Vendido', cst_gift:'Regalo', cst_artist:'Del artista', needsize:'Primero indica el tiraje y guarda la edición.',  hires:'Fotos en alta resolución (enlace o carpeta)', open:'Abrir', hiresfolder:'Carpeta de fotos en alta resolución', hireshint:'Carpeta general del artista: ', prints:'Reproducciones', manageprints:'Ver / editar reproducciones', savefirst:'Guarda la obra primero para agregar reproducciones.', noprints:'Sin reproducciones.', editions:'ediciones', edition1:'edición', pmedium:'Técnica de impresión / soporte', pedition:'Tiraje (ejemplares)', pap:'Pruebas de artista (P/A)', pprinted:'Impresos hasta hoy', psold:'Vendidos', pprinter:'Taller / impresor', pdate:'Fecha de impresión', back:'Volver', available_n:'disponibles', newedition:'Nueva edición', editedition:'Editar edición',  team:'Equipo', admins:'Admins', add:'Agregar', remove:'Quitar', you:'(tú)', owner_t:'(artista)', teamhelp:'Personas que pueden manejar tu cuenta: ven y editan solo tus obras, lugares, clientes y exposiciones. Agrega su correo; luego ellas crean su cuenta en la app con ese mismo correo.', adminshelp:'Los administradores ven y manejan todo, de todos los artistas. Agrega su correo; luego crean su cuenta en la app con ese correo.', takephoto:'Tomar foto', choosephotos:'Elegir fotos', newphoto:'nueva', pickworks:'Obras en esta exposición', pickall:'Todas / ninguna', exhibitions:'Exposiciones', places:'Lugares', clients:'Clientes',
+    works_t:'Obras', ap_short:'P/A', venueplace:'Lugar (sede)',  cms:'Centímetros', rateset:'Tipo de cambio: pesos por 1 dólar (vacío = automático)', rateauto:'automático', ratemanual:'fijado a mano', rateclick:'(tocar para cambiar)',  copies:'Ejemplares', gencopies:'Generar ejemplares (1…tiraje + P/A)', copy:'Ejemplar', cst_available:'Disponible', cst_reserved:'Reservado', cst_sold:'Vendido', cst_gift:'Regalo', cst_artist:'Del artista', needsize:'Primero indica el tiraje y guarda la edición.',  hires:'Fotos en alta resolución (enlace o carpeta)', open:'Abrir', hiresfolder:'Carpeta de fotos en alta resolución', hireshint:'Carpeta general del artista: ', prints:'Reproducciones', manageprints:'Ver / editar reproducciones', savefirst:'Guarda la obra primero para agregar reproducciones.', noprints:'Sin reproducciones.', editions:'ediciones', edition1:'edición', pmedium:'Técnica de impresión / soporte', pedition:'Tiraje (ejemplares)', pap:'Pruebas de artista (P/A)', pprinted:'Impresos hasta hoy', psold:'Vendidos', pprinter:'Taller / impresor', pdate:'Fecha de impresión', back:'Volver', available_n:'disponibles', newedition:'Nueva edición', editedition:'Editar edición',  team:'Equipo', admins:'Admins', add:'Agregar', remove:'Quitar', you:'(tú)', owner_t:'(artista)', teamhelp:'Personas que pueden manejar tu cuenta: ven y editan solo tus obras, lugares, clientes y exposiciones. Agrega su correo; luego ellas crean su cuenta en la app con ese mismo correo.', adminshelp:'Los administradores ven y manejan todo, de todos los artistas. Agrega su correo; luego crean su cuenta en la app con ese correo.', takephoto:'Tomar foto', choosephotos:'Elegir fotos', newphoto:'nueva', pickworks:'Obras en esta exposición', pickall:'Todas / ninguna', exhibitions:'Exposiciones', places:'Lugares', clients:'Clientes',
     new:'+ Nueva obra', selectall:'Seleccionar todo', clearsel:'Quitar selección', printcards:'Fichas', printcoas:'Certificados', pricelist:'Lista de precios',
     artist:'Artista', title:'Título', year:'Año', code:'Código', technique:'Técnica', support:'Soporte',
     height:'Alto (cm)', width:'Ancho (cm)', depth:'Fondo (cm)', fheight:'Alto con marco (cm)', fwidth:'Ancho con marco (cm)', fdepth:'Fondo con marco (cm)',
@@ -311,7 +315,7 @@ const T = {
     importfiles:'Fotos', importrun:'Importar', importdone:'Listo: {n} obras importadas.', importexists:'Este artista ya tiene obras; no se importó nada.',
     inches:'Pulgadas', unique:'Única' },
   en: { email:'Email', password:'Password', signin:'Sign in', signup:'Create account', logout:'Sign out', artists:'Artists', import:'Import',
-    works_t:'Works', copies:'Copies', gencopies:'Create copies (1…edition + AP)', copy:'Copy', cst_available:'Available', cst_reserved:'Reserved', cst_sold:'Sold', cst_gift:'Gift', cst_artist:'Artist’s', needsize:'First enter the edition size and save the edition.',  hires:'High-res photos (link or folder)', open:'Open', hiresfolder:'High-res photos folder', hireshint:'Artist’s general folder: ', prints:'Prints', manageprints:'View / edit prints', savefirst:'Save the work first to add prints.', noprints:'No prints.', editions:'editions', edition1:'edition', pmedium:'Print technique / support', pedition:'Edition size', pap:'Artist’s proofs (AP)', pprinted:'Printed so far', psold:'Sold', pprinter:'Print studio', pdate:'Print date', back:'Back', available_n:'available', newedition:'New edition', editedition:'Edit edition',  team:'Team', admins:'Admins', add:'Add', remove:'Remove', you:'(you)', owner_t:'(artist)', teamhelp:'People who can manage your account: they see and edit only your works, places, clients and exhibitions. Add their email; then they create their account in the app with that same email.', adminshelp:'Admins see and manage everything, for every artist. Add their email; then they create their account in the app with that email.', takephoto:'Take photo', choosephotos:'Choose photos', newphoto:'new', pickworks:'Works in this exhibition', pickall:'All / none', exhibitions:'Exhibitions', places:'Places', clients:'Clients',
+    works_t:'Works', ap_short:'AP', venueplace:'Place (venue)',  cms:'Centimeters', rateset:'Exchange rate: pesos per 1 dollar (empty = automatic)', rateauto:'automatic', ratemanual:'set by hand', rateclick:'(tap to change)',  copies:'Copies', gencopies:'Create copies (1…edition + AP)', copy:'Copy', cst_available:'Available', cst_reserved:'Reserved', cst_sold:'Sold', cst_gift:'Gift', cst_artist:'Artist’s', needsize:'First enter the edition size and save the edition.',  hires:'High-res photos (link or folder)', open:'Open', hiresfolder:'High-res photos folder', hireshint:'Artist’s general folder: ', prints:'Prints', manageprints:'View / edit prints', savefirst:'Save the work first to add prints.', noprints:'No prints.', editions:'editions', edition1:'edition', pmedium:'Print technique / support', pedition:'Edition size', pap:'Artist’s proofs (AP)', pprinted:'Printed so far', psold:'Sold', pprinter:'Print studio', pdate:'Print date', back:'Back', available_n:'available', newedition:'New edition', editedition:'Edit edition',  team:'Team', admins:'Admins', add:'Add', remove:'Remove', you:'(you)', owner_t:'(artist)', teamhelp:'People who can manage your account: they see and edit only your works, places, clients and exhibitions. Add their email; then they create their account in the app with that same email.', adminshelp:'Admins see and manage everything, for every artist. Add their email; then they create their account in the app with that email.', takephoto:'Take photo', choosephotos:'Choose photos', newphoto:'new', pickworks:'Works in this exhibition', pickall:'All / none', exhibitions:'Exhibitions', places:'Places', clients:'Clients',
     new:'+ New work', selectall:'Select all', clearsel:'Clear', printcards:'Cards', printcoas:'Certificates', pricelist:'Price list',
     artist:'Artist', title:'Title', year:'Year', code:'Code', technique:'Technique', support:'Support',
     height:'Height (cm)', width:'Width (cm)', depth:'Depth (cm)', fheight:'Framed height (cm)', fwidth:'Framed width (cm)', fdepth:'Framed depth (cm)',
@@ -346,6 +350,47 @@ const num = v => (v === '' || v == null) ? null : Number(v);
 const inch = cm => (Math.round(cm / 2.54 * 10) / 10).toFixed(1);
 const fmtNum = n => String(+n);
 const usd = n => n == null ? '' : 'US$' + Number(n).toLocaleString('en-US', {maximumFractionDigits:0});
+const ls = (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : v; } catch(e) { return d; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch(e) {} };
+let cur = ls('mira_cur', 'USD'), unit = ls('mira_unit', 'cm');
+let rate = (() => { try { return JSON.parse(ls('mira_rate', 'null')); } catch(e) { return null; } })();   // {value, date, manual, fetched}
+async function refreshRate(force) {
+  if (rate?.manual && !force) return;
+  if (!force && rate?.fetched && Date.now() - rate.fetched < 6 * 3600e3) return;
+  const tries = [
+    ['https://api.frankfurter.dev/v1/latest?base=USD&symbols=MXN', j => [j.rates.MXN, j.date]],
+    ['https://open.er-api.com/v6/latest/USD', j => [j.rates.MXN, (j.time_last_update_utc || '').slice(5, 16)]]
+  ];
+  for (const [u, pick] of tries) {
+    try { const j = await (await fetch(u)).json(); const [v, d] = pick(j); if (v) { rate = { value: v, date: d, manual: false, fetched: Date.now() }; lsSet('mira_rate', JSON.stringify(rate)); return; } } catch(e) {}
+  }
+}
+const rateVal = () => rate?.value || null;
+const priceHdr = () => (cur === 'MXN' && rateVal()) ? t('price').replace('US$', 'MX$') : t('price');
+// money: amounts are stored in US$; shown in the chosen currency
+const money = n => {
+  if (n == null || n === '') return '';
+  if (cur === 'MXN' && rateVal()) return 'MX$' + (Math.round(Number(n) * rateVal() / 100) * 100).toLocaleString('en-US');
+  return usd(n);
+};
+const mxnHint = n => (n == null || n === '' || !rateVal()) ? '' : '≈ MX$' + (Math.round(Number(n) * rateVal() / 100) * 100).toLocaleString('en-US');
+// sizes: stored in cm; shown/entered in the chosen unit
+const toUnit = cm => unit === 'in' ? Math.round(cm / 2.54 * 10) / 10 : +cm;
+const fromUnit = v => (v === '' || v == null) ? null : (unit === 'in' ? Math.round(Number(v) * 2.54 * 10) / 10 : Number(v));
+// size inputs remember their exact cm value, so an untouched field never drifts when shown in inches
+function setDim(id, cm) { const el = $(id); el.dataset.cm = (cm == null || cm === '') ? '' : cm; el.value = (cm == null || cm === '') ? '' : toUnit(cm); }
+function readDim(id) {
+  const el = $(id);
+  if (el.value === '') return null;
+  if (el.dataset.cm !== undefined && el.dataset.cm !== '' && Number(el.value) === toUnit(Number(el.dataset.cm))) return Number(el.dataset.cm);
+  return fromUnit(el.value);
+}
+function dimsTxt(d, both = true) {
+  if (!d.length) return '';
+  const cmT = d.map(fmtNum).join(' x ') + ' cm', inT = d.map(inch).join(' x ') + ' in';
+  if (!both) return unit === 'in' ? inT : cmT;
+  return unit === 'in' ? inT + '  ·  ' + cmT : cmT + '  ·  ' + inT;
+}
 const photoUrl = p => sb.storage.from('photos').getPublicUrl(p).data.publicUrl;
 const opt = (v, label, sel) => `<option value="${esc(v)}"${sel ? ' selected' : ''}>${esc(label)}</option>`;
 const fmtDate = d => d ? new Date(d.length === 10 ? d + 'T12:00:00' : d).toLocaleDateString(lang === 'es' ? 'es-MX' : 'en-US', { year:'numeric', month:'long', day:'numeric' }) : '';
@@ -353,8 +398,7 @@ function dims(a, b, c) { return [a, b, c].filter(x => x != null && x !== ''); }
 function sizeText(w, withIn = true, framed = false) {
   const d = framed ? dims(w.framed_height_cm, w.framed_width_cm, w.framed_depth_cm) : dims(w.height_cm, w.width_cm, w.depth_cm);
   if (!d.length) return '';
-  const cm = d.map(fmtNum).join(' x ') + ' cm';
-  return withIn ? cm + '  ·  ' + d.map(inch).join(' x ') + ' in' : cm;
+  return dimsTxt(d, withIn);
 }
 const VIEWS = ['vLogin','vNoLink','vList','vEdit','vEnt','vImport','vTeam','vPrints'];
 function show(id) { VIEWS.forEach(v => $(v).classList.toggle('hidden', v !== id)); window.scrollTo(0,0); }
@@ -391,6 +435,7 @@ let curEnt = null, entEditing = null;
 
 async function boot() {
   applyLang();
+  if (cur === 'MXN') refreshRate().then(rerenderAll);
   const { data } = await sb.auth.getSession();
   if (data.session) await enter(data.session); else show('vLogin');
 }
@@ -436,15 +481,56 @@ const placeLabel = p => p.name + (isAdmin ? ' · ' + artistName(p.artist_id) : '
 
 function applyLang() {
   document.documentElement.lang = lang;
-  document.querySelectorAll('[data-t]').forEach(el => el.textContent = t(el.dataset.t));
+  document.querySelectorAll('[data-t]').forEach(el => { const v = t(el.dataset.t); el.textContent = unit === 'in' ? v.replace('(cm)', '(in)') : v; });
+  $('btnCur').textContent = cur === 'MXN' ? 'MX$' : 'US$'; $('btnUnit').textContent = unit;
+  renderRateInfo();
   $('btnLang').textContent = $('btnLang2').textContent = lang === 'es' ? 'English' : 'Español';
   $('fText').placeholder = t('search');
+  const stKeep = $('eStatus').value;
   $('eStatus').innerHTML = STATUSES.map(s => opt(s, t('st_'+s))).join('');
+  if (stKeep) $('eStatus').value = stKeep;
+  fillMediumList();
   fillFilters();
   if (!$('vList').classList.contains('hidden')) renderList();
   if (!$('vEnt').classList.contains('hidden') && curEnt) renderEnt();
 }
-function toggleLang() { lang = lang === 'es' ? 'en' : 'es'; try { localStorage.setItem('cat_lang', lang); } catch(e) {} applyLang(); }
+function renderRateInfo() {
+  const el = $('rateInfo'); if (!el) return;
+  el.textContent = (cur === 'MXN' && rateVal()) ? `1 US$ = ${rateVal().toFixed(2)} MX$ · ${rate.manual ? t('ratemanual') : (rate.date || t('rateauto'))} ${t('rateclick')}` : '';
+}
+function refreshOpenView() {
+  const open = id => !$(id).classList.contains('hidden');
+  if (open('vEdit')) { $('eHead').textContent = editing ? t('editwork') : t('newwork'); updInches(); renderPrintSummary(editing); }
+  if (open('vPrints')) { renderEdTable(); $('pFormHead').textContent = pEditing ? t('editedition') : t('newedition'); updPInches(); renderCopies(); }
+  if (open('vTeam')) { const em = $('tEmail').value; goTeam(teamMode).then(() => { $('tEmail').value = em; }); }
+}
+function rerenderAll() { applyLang(); refreshOpenView(); }
+function fillMediumList() {
+  const es = ['Giclée sobre papel de algodón','Giclée sobre canvas','Serigrafía','Litografía','Grabado','Impresión digital sobre papel'];
+  const en = ['Giclée on cotton paper','Giclée on canvas','Screen print','Lithograph','Etching','Digital print on paper'];
+  const el = $('pMediumList'); if (el) el.innerHTML = (lang === 'es' ? es : en).map(x => `<option value="${x}">`).join('');
+}
+async function toggleCur() {
+  cur = cur === 'USD' ? 'MXN' : 'USD'; lsSet('mira_cur', cur);
+  if (cur === 'MXN') await refreshRate();
+  rerenderAll();
+}
+function toggleUnit() {
+  const ids = ['eH','eW','eD','eFH','eFW','eFD','pH','pW'];
+  const cms = ids.map(id => readDim(id));          // exact cm for each field, in the old unit
+  unit = unit === 'cm' ? 'in' : 'cm'; lsSet('mira_unit', unit);
+  ids.forEach((id, i) => { const el = $(id); if (cms[i] == null) { el.value = ''; return; } el.dataset.cm = cms[i]; el.value = toUnit(cms[i]); });
+  rerenderAll(); updPInches();
+}
+async function editRate() {
+  const v = prompt(t('rateset'), rate?.manual ? String(rate.value) : '');
+  if (v === null) return;
+  const n = Number(String(v).replace(',', '.'));
+  if (v.trim() === '' || !n) { rate = null; lsSet('mira_rate', 'null'); await refreshRate(true); }
+  else { rate = { value: n, date: '', manual: true, fetched: Date.now() }; lsSet('mira_rate', JSON.stringify(rate)); }
+  rerenderAll();
+}
+function toggleLang() { lang = lang === 'es' ? 'en' : 'es'; try { localStorage.setItem('cat_lang', lang); } catch(e) {} applyLang(); refreshOpenView(); }
 
 function fillFilters() {
   const fa = $('fArtist').value, fs = $('fStatus').value, fp = $('fPlace').value, fe = $('fExh').value;
@@ -485,7 +571,7 @@ function renderList() {
       <div class="muted">${esc(w.code || '')}${isAdmin && w.artists ? ' · ' + esc(w.artists.name) : ''}</div>
       <div>${esc(sizeText(w, false))}</div>
       <div class="muted">${esc(placeName(w.place_id))}${w.owner_client_id ? ' · ' + esc(clientName(w.owner_client_id)) : ''}</div>
-      <div>${usd(w.price_usd)} <span class="badge b-${w.status}">${t('st_' + w.status)}</span>${w.eds.length ? ` <span class="badge">🖨 ${w.eds.length} ${w.eds.length === 1 ? t('edition1') : t('editions')}</span>` : ''}</div></div></div>`;
+      <div>${money(w.price_usd)} <span class="badge b-${w.status}">${t('st_' + w.status)}</span>${w.eds.length ? ` <span class="badge">🖨 ${w.eds.length} ${w.eds.length === 1 ? t('edition1') : t('editions')}</span>` : ''}</div></div></div>`;
   }).join('');
 }
 async function applyBulk() {
@@ -522,8 +608,8 @@ async function openEdit(w) {
   const v = (id, x) => $(id).value = x ?? '';
   v('eTitle', w?.title); v('eYear', w?.year); v('eCode', w?.code); v('eEdition', w?.edition);
   v('eTech', w?.technique); v('eSupport', w?.support);
-  v('eH', w?.height_cm); v('eW', w?.width_cm); v('eD', w?.depth_cm);
-  v('eFH', w?.framed_height_cm); v('eFW', w?.framed_width_cm); v('eFD', w?.framed_depth_cm);
+  setDim('eH', w?.height_cm); setDim('eW', w?.width_cm); setDim('eD', w?.depth_cm);
+  setDim('eFH', w?.framed_height_cm); setDim('eFW', w?.framed_width_cm); setDim('eFD', w?.framed_depth_cm);
   v('eSig', w?.signature); v('ePrice', w?.price_usd); $('eStatus').value = w?.status || 'available';
   v('eHires', w?.hires_url); updHires(); renderPrintSummary(w);
   v('eCons', w?.date_consigned); v('eSold', w?.sold_date); v('eSale', w?.sale_price_usd); v('eNotes', w?.notes);
@@ -547,11 +633,11 @@ function updHires() {
   const a = artists.find(x => x.id === artistOf());
   $('eHiresHint').textContent = a?.hires_folder ? t('hireshint') + a.hires_folder : '';
 }
-function edSize(e) { const d = [e.height_cm, e.width_cm].filter(x => x != null); return d.length ? d.map(fmtNum).join(' x ') + ' cm (' + d.map(inch).join(' x ') + ' in)' : ''; }
+function edSize(e) { return dimsTxt([e.height_cm, e.width_cm].filter(x => x != null)); }
 function edLine(e) {
   const avail = e.copies?.length ? e.copies.filter(c => c.kind === 'numbered' && c.status === 'available').length : (e.edition_size != null ? Math.max(0, e.edition_size - (e.sold_count || 0)) : null);
-  return [e.medium, edSize(e), e.edition_size != null ? `${t('pedition')}: ${e.edition_size}` + (e.ap_count ? ` + ${e.ap_count} P/A` : '') : '',
-          avail != null ? `${avail} ${t('available_n')}` : '', usd(e.price_usd)].filter(Boolean).join(' · ');
+  return [e.medium, edSize(e), e.edition_size != null ? `${t('pedition')}: ${e.edition_size}` + (e.ap_count ? ` + ${e.ap_count} ${t('ap_short')}` : '') : '',
+          avail != null ? `${avail} ${t('available_n')}` : '', money(e.price_usd)].filter(Boolean).join(' · ');
 }
 function renderPrintSummary(w) {
   $('btnPrints').classList.toggle('hidden', !w);
@@ -559,8 +645,8 @@ function renderPrintSummary(w) {
   $('ePrints').innerHTML = w.eds.length ? '<ul style="margin:4px 0;padding-left:18px">' + w.eds.map(e => `<li>${esc(edLine(e))}</li>`).join('') + '</ul>' : t('noprints');
 }
 function updInches() {
-  const d = [$('eH').value, $('eW').value, $('eD').value].filter(v => v !== '').map(Number);
-  $('eInches').textContent = d.length ? `${t('inches')}: ${d.map(inch).join(' x ')} in` : '';
+  const d = ['eH','eW','eD'].map(readDim).filter(v => v != null);
+  $('eInches').textContent = otherUnitHint(d); updPriceHints();
 }
 function renderPending() {
   $('ePending').innerHTML = pending.map((f, i) => `<div><img src="${f.url}"><button data-pend="${i}">✕</button></div>`).join('');
@@ -577,8 +663,8 @@ async function saveWork(stay = false) {
   const s = id => $(id).value.trim() || null;
   const rec = {
     artist_id: artistOf(), title, year: num($('eYear').value), edition: s('eEdition'), technique: s('eTech'), support: s('eSupport'),
-    height_cm: num($('eH').value), width_cm: num($('eW').value), depth_cm: num($('eD').value),
-    framed_height_cm: num($('eFH').value), framed_width_cm: num($('eFW').value), framed_depth_cm: num($('eFD').value),
+    height_cm: readDim('eH'), width_cm: readDim('eW'), depth_cm: readDim('eD'),
+    framed_height_cm: readDim('eFH'), framed_width_cm: readDim('eFW'), framed_depth_cm: readDim('eFD'),
     signature: s('eSig'), price_usd: num($('ePrice').value), status: $('eStatus').value,
     place_id: $('ePlace').value || null, date_consigned: $('eCons').value || null,
     owner_client_id: $('eOwner').value || null, sold_date: $('eSold').value || null, sale_price_usd: num($('eSale').value),
@@ -623,7 +709,7 @@ async function deleteWork() {
 // ---------- printing ----------
 function printWindow(head, body) {
   const w = window.open('', '_blank'); if (!w) return;
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Catartsma</title>${head}</head><body>${body}
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Mira</title>${head}</head><body>${body}
   <script>window.onload=()=>{const imgs=[...document.images];Promise.all(imgs.map(i=>i.complete?1:new Promise(r=>{i.onload=i.onerror=r}))).then(()=>setTimeout(()=>window.print(),300));}<\/script></body></html>`);
   w.document.close();
 }
@@ -641,7 +727,7 @@ function cardsHtml(list) {
   const body = list.map(w => `<div class="sq"><div class="img">${w.photos[0] ? `<img src="${photoUrl(w.photos[0].path)}">` : ''}</div>
     <div class="txt"><div class="ttl">${esc(w.title)}${w.year ? ', ' + w.year : ''}</div>
     <div class="ln">${esc(w.technique || '')}</div><div class="ln">${esc(sizeText(w))}</div>
-    <div class="pr">${w.status === 'sold' ? esc(t('st_sold')) : usd(w.price_usd)}</div></div></div>`).join('');
+    <div class="pr">${w.status === 'sold' ? esc(t('st_sold')) : money(w.price_usd)}</div></div></div>`).join('');
   return [head, body];
 }
 function coasHtml(list, today) {
@@ -695,16 +781,16 @@ function printPriceList(list) {
   if (!list.length) { alert(t('nothingsel')); return; }
   const ex = exhibitions.find(e => e.id === $('fExh').value);
   const head = `<style>@page{size:letter;margin:1.5cm} body{font-family:Arial,sans-serif;font-size:10pt} table{width:100%;border-collapse:collapse} td,th{border-bottom:1px solid #ccc;padding:5px;text-align:left;vertical-align:middle} img{width:2.2cm;height:2.2cm;object-fit:contain} th{font-size:9pt;color:#555}</style>`;
-  const body = `<h2>${esc(ex ? ex.title : 'Catartsma')}</h2>${ex ? `<p>${esc([ex.venue, ex.city].filter(Boolean).join(', '))}${ex.start_date ? ' · ' + fmtDate(ex.start_date) : ''}${ex.end_date ? ' – ' + fmtDate(ex.end_date) : ''}</p>` : ''}
-    <table><tr><th></th><th>${t('code')}</th><th>${t('title')}</th><th>${t('technique')}</th><th>cm / in</th><th>${t('price')}</th><th>${t('status')}</th></tr>` +
-    list.map(w => `<tr><td>${w.photos[0] ? `<img src="${photoUrl(w.photos[0].path)}">` : ''}</td><td>${esc(w.code||'')}</td><td><b>${esc(w.title)}</b>${w.year ? ', ' + w.year : ''}${isAdmin && w.artists ? '<br>' + esc(w.artists.name) : ''}</td><td>${esc(w.technique||'')}</td><td>${esc(sizeText(w))}</td><td>${usd(w.price_usd)}</td><td>${t('st_'+w.status)}</td></tr>`).join('') + '</table>';
+  const body = `<h2>${esc(ex ? ex.title : 'Mira')}</h2>${ex ? `<p>${esc([ex.venue, ex.city].filter(Boolean).join(', '))}${ex.start_date ? ' · ' + fmtDate(ex.start_date) : ''}${ex.end_date ? ' – ' + fmtDate(ex.end_date) : ''}</p>` : ''}
+    <table><tr><th></th><th>${t('code')}</th><th>${t('title')}</th><th>${t('technique')}</th><th>${unit === 'in' ? 'in / cm' : 'cm / in'}</th><th>${priceHdr()}</th><th>${t('status')}</th></tr>` +
+    list.map(w => `<tr><td>${w.photos[0] ? `<img src="${photoUrl(w.photos[0].path)}">` : ''}</td><td>${esc(w.code||'')}</td><td><b>${esc(w.title)}</b>${w.year ? ', ' + w.year : ''}${isAdmin && w.artists ? '<br>' + esc(w.artists.name) : ''}</td><td>${esc(w.technique||'')}</td><td>${esc(sizeText(w))}</td><td>${money(w.price_usd)}</td><td>${t('st_'+w.status)}</td></tr>`).join('') + '</table>';
   printWindow(head, body);
 }
 
 // ---------- generic lists ----------
 const ENT = {
   exhibitions: { table:'exhibitions', title:'exhibitions', owner:true, ownerOptional:true,
-    fields:[['title','title','text'],['venue','venue','text'],['place_id','place','place'],['city','city','text'],
+    fields:[['title','title','text'],['venue','venue','text'],['place_id','venueplace','place'],['city','city','text'],
             ['opening_date','opening','date'],['start_date','start','date'],['end_date','end','date'],['curator','curator','text'],['notes','notes','textarea']],
     cols:[['title','title'],['venue','venue'],['start_date','start'],['end_date','end']], countBy:e => works.filter(w => w.exh.includes(e.id)).length,
     showWorks:e => { resetFilters(); $('fExh').value = e.id; goWorks(); } },
@@ -811,28 +897,36 @@ function goPrints() {
   $('pThumb').src = pWork.photos[0] ? photoUrl(pWork.photos[0].path) : '';
   pEditing = null; renderPrints(); show('vPrints');
 }
-function renderPrints() {
+function renderPrints() { renderEdTable(); fillPrintForm(pEditing); }
+function renderEdTable() {
   const eds = (works.find(w => w.id === pWork.id) || pWork).eds;
   $('pTable').innerHTML = eds.length
-    ? `<tr><th>${t('pmedium')}</th><th>cm / in</th><th>${t('pedition')}</th><th>P/A</th><th>${t('pprinted')}</th><th>${t('psold')}</th><th>${t('price')}</th><th></th></tr>` +
-      eds.map(e => `<tr><td>${esc(e.medium || '')}</td><td>${esc(edSize(e))}</td><td>${e.edition_size ?? ''}</td><td>${e.ap_count ?? ''}</td><td>${e.printed_count ?? ''}</td><td>${e.sold_count ?? ''}</td><td>${usd(e.price_usd)}</td><td><button data-ped="${e.id}">${t('edit')}</button></td></tr>`).join('')
+    ? `<tr><th>${t('pmedium')}</th><th>${unit === 'in' ? 'in / cm' : 'cm / in'}</th><th>${t('pedition')}</th><th>${t('ap_short')}</th><th>${t('pprinted')}</th><th>${t('psold')}</th><th>${priceHdr()}</th><th></th></tr>` +
+      eds.map(e => `<tr><td>${esc(e.medium || '')}</td><td>${esc(edSize(e))}</td><td>${e.edition_size ?? ''}</td><td>${e.ap_count ?? ''}</td><td>${e.printed_count ?? ''}</td><td>${e.sold_count ?? ''}</td><td>${money(e.price_usd)}</td><td><button data-ped="${e.id}">${t('edit')}</button></td></tr>`).join('')
     : `<tr><td class="muted">${t('noprints')}</td></tr>`;
-  fillPrintForm(pEditing);
 }
 function fillPrintForm(e) {
   pEditing = e || null;
   $('pFormHead').textContent = e ? t('editedition') : t('newedition');
   const v = (id, x) => $(id).value = x ?? '';
-  v('pMedium', e?.medium); v('pH', e?.height_cm); v('pW', e?.width_cm); v('pEd', e?.edition_size); v('pAP', e?.ap_count);
+  v('pMedium', e?.medium); setDim('pH', e?.height_cm); setDim('pW', e?.width_cm); v('pEd', e?.edition_size); v('pAP', e?.ap_count);
   v('pPrinted', e?.printed_count); v('pSold', e?.sold_count); v('pPrice', e?.price_usd); v('pPrinter', e?.printer); v('pDate', e?.print_date); v('pNotes', e?.notes);
   $('btnPDel').classList.toggle('hidden', !e); updPInches(); msg($('pMsg'), '');
   if ((e?.id || null) !== lastEdId) copySel = new Set();
   lastEdId = e?.id || null; renderCopies();
 }
-function updPInches() { const d = [$('pH').value, $('pW').value].filter(v => v !== '').map(Number); $('pInches').textContent = d.length ? `${t('inches')}: ${d.map(inch).join(' x ')} in` : ''; }
+function updPInches() { const d = ['pH','pW'].map(readDim).filter(v => v != null); $('pInches').textContent = otherUnitHint(d); $('pPriceHint').textContent = cur === 'MXN' ? mxnHint(num($('pPrice').value)) : ''; }
+function otherUnitHint(d) {
+  if (!d.length) return '';
+  return unit === 'in' ? `${t('cms')}: ${d.map(fmtNum).join(' x ')} cm` : `${t('inches')}: ${d.map(inch).join(' x ')} in`;
+}
+function updPriceHints() {
+  $('ePriceHint').textContent = cur === 'MXN' ? mxnHint(num($('ePrice').value)) : '';
+  $('eSaleHint').textContent = cur === 'MXN' ? mxnHint(num($('eSale').value)) : '';
+}
 async function savePrint() {
   const s = id => $(id).value.trim() || null;
-  const rec = { work_id: pWork.id, medium: s('pMedium'), height_cm: num($('pH').value), width_cm: num($('pW').value),
+  const rec = { work_id: pWork.id, medium: s('pMedium'), height_cm: readDim('pH'), width_cm: readDim('pW'),
     edition_size: num($('pEd').value), ap_count: num($('pAP').value), printed_count: num($('pPrinted').value), sold_count: num($('pSold').value),
     price_usd: num($('pPrice').value), printer: s('pPrinter'), print_date: $('pDate').value || null, notes: s('pNotes') };
   if (!rec.medium && rec.edition_size == null) { msg($('pMsg'), t('needname'), true); return; }
@@ -849,7 +943,7 @@ async function deletePrint() {
 let copySel = new Set(), lastEdId = null;
 const curWork = () => works.find(w => w.id === pWork.id) || pWork;
 const curEd = id => curWork().eds.find(e => e.id === id) || null;
-const copyLabel = (c, e) => c.kind === 'ap' ? `P/A ${c.number}` : `${c.number}/${e.edition_size ?? '?'}`;
+const copyLabel = (c, e, forCoa) => c.kind === 'ap' ? `${forCoa ? 'P/A' : t('ap_short')} ${c.number}` : `${c.number}/${e.edition_size ?? '?'}`;
 function renderCopies() {
   const e = pEditing;
   $('pCopiesWrap').classList.toggle('hidden', !e);
@@ -899,10 +993,10 @@ async function printCopyCoas() {
       ['Obra original / Original work', w.title + (w.year ? ', ' + w.year : '')],
       ['Técnica / Medium', e.medium],
       ['Medidas / Size', edSize(e)],
-      ['Ejemplar / Print no.', copyLabel(c, e) + (c.kind === 'ap' ? '' : (e.ap_count ? `  (+ ${e.ap_count} P/A)` : ''))],
+      ['Ejemplar / Print no.', copyLabel(c, e, true) + (c.kind === 'ap' ? '' : (e.ap_count ? `  (+ ${e.ap_count} P/A)` : ''))],
       ['Impresor / Printer', e.printer],
       ['Fecha de impresión / Printed', e.print_date ? dEs(e.print_date) : ''],
-      ['Registro / Inventory no.', (w.code || '') + ' · ' + copyLabel(c, e)],
+      ['Registro / Inventory no.', (w.code || '') + ' · ' + copyLabel(c, e, true)],
       c.owner_client_id ? ['Propietario / Owner', clientName(c.owner_client_id)] : null
     ].filter(r => r && r[1]);
     const issued = c.coa_issued || today;
@@ -999,6 +1093,11 @@ async function runImport() {
 
 // ---------- events ----------
 $('btnLang').onclick = $('btnLang2').onclick = toggleLang;
+$('btnCur').onclick = toggleCur;
+$('btnUnit').onclick = toggleUnit;
+$('rateInfo').onclick = editRate;
+$('ePrice').oninput = $('eSale').oninput = updPriceHints;
+$('pPrice').oninput = updPInches;
 $('btnLogin').onclick = async () => {
   const r = await sb.auth.signInWithPassword({ email: $('lEmail').value.trim(), password: $('lPass').value });
   if (r.error) msg($('lMsg'), r.error.message, true); else await enter(r.data.session);
