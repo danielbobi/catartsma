@@ -64,6 +64,9 @@
   .pick img, .pick .noimg { width:100%; aspect-ratio:1; object-fit:contain; background:#f1efea; display:block; }
   .pick input { position:absolute; top:5px; left:5px; width:20px; height:20px; accent-color:var(--accent); }
   .pick span { display:block; padding:4px 6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #cTable select, #cTable input { width:auto; min-width:8.5em; padding:6px 8px; }
+  #cTable input[type=number] { min-width:6em; } #cTable input[type=checkbox] { min-width:0; width:20px; height:20px; }
+  #cTable td { vertical-align:middle; white-space:nowrap; }
   .hist li { font-size:13px; color:var(--muted); }
 </style>
 </head>
