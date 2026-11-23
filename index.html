@@ -29,6 +29,10 @@
   input, select, textarea { font:inherit; width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:8px; background:#fff; }
   input[type=checkbox] { width:auto; }
   label { display:block; font-size:13px; color:var(--muted); margin:10px 0 4px; }
+  label.req::after { content:' *'; color:#c0392b; font-weight:bold; }
+  .reqnote { font-size:12px; color:var(--muted); margin:10px 0 0; }
+  .reqnote b { color:#c0392b; }
+  .missing { border-color:#c0392b !important; background:#fff5f4 !important; }
   .row { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; }
   .toolbar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:10px; }
   .toolbar select, .toolbar input { width:auto; min-width:120px; flex:1; }
@@ -143,8 +147,8 @@
 
   <section id="vEdit" class="panel hidden">
     <h2 id="eHead"></h2>
-    <div id="eArtistWrap"><label data-t="artist"></label><select id="eArtist"></select></div>
-    <label data-t="title"></label><input id="eTitle">
+    <div id="eArtistWrap"><label class="req" data-t="artist"></label><select id="eArtist"></select></div>
+    <label class="req" data-t="title"></label><input id="eTitle">
     <div class="row">
       <div><label data-t="year"></label><input id="eYear" type="number" inputmode="numeric"></div>
       <div><label data-t="code"></label><input id="eCode" disabled></div>
@@ -195,7 +199,7 @@
     <div id="ePrints" class="muted"></div>
     <div class="toolbar" style="margin-top:6px"><button type="button" id="btnPrints" data-t="manageprints"></button></div>
     <div id="eHistWrap" class="hidden"><h3 data-t="history"></h3><ul class="hist" id="eHist"></ul></div>
-    <div id="eMsg" class="msg hidden"></div>
+    <p class="reqnote"><b>*</b> <span data-t="reqnote"></span></p><div id="eMsg" class="msg hidden"></div>
     <div class="toolbar" style="margin-top:14px">
       <button class="primary" id="btnSave" data-t="save"></button>
       <button id="btnCancel" data-t="cancel"></button>
@@ -210,7 +214,7 @@
     <div class="panel">
       <h2 id="entFormHead"></h2>
       <div id="entForm"></div>
-      <div id="entMsg" class="msg hidden"></div>
+      <p class="reqnote"><b>*</b> <span data-t="reqnote"></span></p><div id="entMsg" class="msg hidden"></div>
       <div class="toolbar" style="margin-top:12px">
         <button class="primary" id="btnEntSave" data-t="save"></button>
         <button id="btnEntNew"></button>
@@ -224,7 +228,7 @@
     <h3 data-t="prints"></h3>
     <div style="overflow-x:auto"><table id="pTable"></table></div>
     <h3 id="pFormHead"></h3>
-    <label data-t="pmedium"></label><input id="pMedium" list="pMediumList">
+    <label class="req" data-t="pmedium"></label><input id="pMedium" list="pMediumList">
     <datalist id="pMediumList"></datalist>
     <div class="row">
       <div><label data-t="height"></label><input id="pH" type="number" step="0.1" inputmode="decimal"></div>
@@ -232,7 +236,7 @@
     </div>
     <div class="muted" id="pInches"></div>
     <div class="row">
-      <div><label data-t="pedition"></label><input id="pEd" type="number" inputmode="numeric"></div>
+      <div><label class="req" data-t="pedition"></label><input id="pEd" type="number" inputmode="numeric"></div>
       <div><label data-t="pap"></label><input id="pAP" type="number" inputmode="numeric"></div>
       <div><label data-t="pprinted"></label><input id="pPrinted" type="number" inputmode="numeric"></div>
       <div><label data-t="psold"></label><input id="pSold" type="number" inputmode="numeric"></div>
@@ -243,7 +247,7 @@
       <div><label data-t="pdate"></label><input id="pDate" type="date"></div>
     </div>
     <label data-t="notes"></label><textarea id="pNotes" rows="2"></textarea>
-    <div id="pMsg" class="msg hidden"></div>
+    <p class="reqnote"><b>*</b> <span data-t="reqone"></span></p><div id="pMsg" class="msg hidden"></div>
     <div id="pCopiesWrap" class="hidden">
       <h3 data-t="copies"></h3>
       <div class="toolbar">
@@ -268,9 +272,9 @@
     <div id="tArtistWrap" class="hidden"><label data-t="artist"></label><select id="tArtist"></select></div>
     <table id="tTable" style="margin-top:8px"></table>
     <div class="row" style="margin-top:10px">
-      <div><label data-t="email"></label><input id="tEmail" type="email" placeholder="nombre@correo.com"></div>
+      <div><label class="req" data-t="email"></label><input id="tEmail" type="email" placeholder="nombre@correo.com"></div>
     </div>
-    <div id="tMsg" class="msg hidden"></div>
+    <p class="reqnote"><b>*</b> <span data-t="reqnote"></span></p><div id="tMsg" class="msg hidden"></div>
     <div class="toolbar" style="margin-top:10px"><button class="primary" id="btnTAdd" data-t="add"></button></div>
   </section>
 
@@ -278,12 +282,12 @@
     <h2 data-t="importhead"></h2>
     <p class="muted" data-t="importhelp"></p>
     <div class="row">
-      <div><label data-t="name"></label><input id="iName" value="Cecilia"></div>
+      <div><label class="req" data-t="name"></label><input id="iName" value="Cecilia"></div>
       <div><label data-t="email"></label><input id="iEmail" type="email" placeholder="cecilia@…"></div>
-      <div><label data-t="prefix"></label><input id="iPrefix" value="CEC" maxlength="5"></div>
+      <div><label class="req" data-t="prefix"></label><input id="iPrefix" value="CEC" maxlength="5"></div>
     </div>
     <label data-t="importfiles"></label><input id="iFiles" type="file" accept="image/*" multiple>
-    <div id="iMsg" class="msg hidden"></div>
+    <p class="reqnote"><b>*</b> <span data-t="reqnote"></span></p><div id="iMsg" class="msg hidden"></div>
     <div class="toolbar" style="margin-top:12px"><button class="primary" id="btnIRun" data-t="importrun"></button></div>
   </section>
 </main>
@@ -312,7 +316,7 @@ const T = {
     h_location:'Lugar', h_owner:'Propietario', h_status:'Estado',
     setplace:'Mover a lugar', setstatus:'Cambiar estado', addexh:'Agregar a exposición', apply:'Aplicar a seleccionadas', nochange:'(sin cambio)', bulkdone:'Listo: {n} obras actualizadas.',
     notlinked:'Tu cuenta todavía no está vinculada a un artista. Pide a Daniel que agregue tu correo.',
-    confirmdel:'¿Borrar? No se puede deshacer.', saved:'Guardado.', saving:'Guardando…', needname:'Falta un dato obligatorio.',
+    confirmdel:'¿Borrar? No se puede deshacer.', saved:'Guardado.', saving:'Guardando…', needname:'Falta un dato obligatorio.', reqnote:'Obligatorio', reqone:'Llena al menos uno: técnica de impresión o tiraje',
     signupok:'Cuenta creada. Ya puedes entrar.', needtitle:'Falta el título.', nothingsel:'No hay obras para imprimir.',
     importhead:'Importar obras de Cecilia', importhelp:'Crea el artista (si no existe) y agrega las 14 obras. Elige las 14 fotos de Downloads\\cecilia.',
     importfiles:'Fotos', importrun:'Importar', importdone:'Listo: {n} obras importadas.', importexists:'Este artista ya tiene obras; no se importó nada.',
@@ -335,7 +339,7 @@ const T = {
     h_location:'Place', h_owner:'Owner', h_status:'Status',
     setplace:'Move to place', setstatus:'Change status', addexh:'Add to exhibition', apply:'Apply to selected', nochange:'(no change)', bulkdone:'Done: {n} works updated.',
     notlinked:'Your account is not linked to an artist yet. Ask Daniel to add your email.',
-    confirmdel:'Delete? This cannot be undone.', saved:'Saved.', saving:'Saving…', needname:'A required field is missing.',
+    confirmdel:'Delete? This cannot be undone.', saved:'Saved.', saving:'Saving…', needname:'A required field is missing.', reqnote:'Required', reqone:'Fill in at least one: print technique or edition size',
     signupok:'Account created. You can sign in now.', needtitle:'Title is missing.', nothingsel:'No works to print.',
     importhead:'Import Cecilia’s works', importhelp:'Creates the artist (if needed) and adds the 14 works. Choose the 14 photos from Downloads\\cecilia.',
     importfiles:'Photos', importrun:'Import', importdone:'Done: {n} works imported.', importexists:'This artist already has works; nothing was imported.',
@@ -675,7 +679,7 @@ async function makeMainPhoto(pid) {
 }
 async function saveWork(stay = false) {
   const title = $('eTitle').value.trim();
-  if (!title) { msg($('eMsg'), t('needtitle'), true); return; }
+  if (!title) { markMissing($('eTitle')); msg($('eMsg'), t('needtitle'), true); return; }
   $('btnSave').disabled = true; msg($('eMsg'), t('saving'));
   const s = id => $(id).value.trim() || null;
   const rec = {
@@ -820,7 +824,7 @@ const ENT = {
     cols:[['name','name'],['email','email'],['city','city']], countBy:c => works.filter(w => w.owner_client_id === c.id).length,
     showWorks:c => { resetFilters(); fOwner = c.id; goWorks(); } },
   artists: { table:'artists', title:'artists', owner:false,
-    fields:[['name','name','text'],['email','email','email'],['code_prefix','prefix','text'],['city','city','text'],['commission_pct','commission','number'],['phone','phone','text'],['hires_folder','hiresfolder','text'],['bio','bio','textarea']],
+    fields:[['name','name','text'],['email','email','email'],['code_prefix','prefix','text'],['city','city','text'],['phone','phone','text'],['hires_folder','hiresfolder','text'],['bio','bio','textarea']],
     cols:[['name','name'],['email','email'],['code_prefix','prefix'],['city','city']], countBy:a => works.filter(w => w.artist_id === a.id).length,
     showWorks:a => { resetFilters(); $('fArtist').value = a.id; goWorks(); } }
 };
@@ -849,16 +853,23 @@ function renderEnt() {
       <td>${E.countBy(r)}</td><td style="white-space:nowrap">${(isAdmin || !E.owner || r.artist_id === myArtist?.id) ? `<button data-edit="${r.id}">${t('edit')}</button> ` : ''}<button data-show="${r.id}">${t('show')}</button></td></tr>`).join('');
   renderEntForm();
 }
+function entReq(E, col) { return col === (curEnt === 'exhibitions' ? 'title' : 'name') || (curEnt === 'artists' && col === 'code_prefix'); }
+function markMissing(el) {
+  if (!el) return;
+  el.classList.add('missing'); el.focus();
+  el.addEventListener('input', () => el.classList.remove('missing'), { once:true });
+  el.addEventListener('change', () => el.classList.remove('missing'), { once:true });
+}
 function renderEntForm() {
   const E = ENT[curEnt], r = entEditing || {};
   $('entFormHead').textContent = entEditing ? `${t('editing')}: ${entEditing.name || entEditing.title}` : t('addnew').replace('+ ', '');
   let html = '';
   if (E.owner && isAdmin) {
-    html += `<label>${t('artist')}</label><select id="f_artist_id">${E.ownerOptional ? opt('', t('groupshow')) : ''}${artists.map(a => opt(a.id, a.name, r.artist_id === a.id)).join('')}</select>`;
+    html += `<label${E.ownerOptional ? '' : ' class="req"'}>${t('artist')}</label><select id="f_artist_id">${E.ownerOptional ? opt('', t('groupshow')) : ''}${artists.map(a => opt(a.id, a.name, r.artist_id === a.id)).join('')}</select>`;
   }
   for (const [col, lab, type] of E.fields) {
     const v = r[col] ?? '';
-    html += `<label>${t(lab)}</label>`;
+    html += `<label${entReq(E, col) ? ' class="req"' : ''}>${t(lab)}</label>`;
     if (type === 'textarea') html += `<textarea id="f_${col}" rows="2">${esc(v)}</textarea>`;
     else if (type === 'kind') html += `<select id="f_${col}">${KINDS.map(k => opt(k, t('k_' + k), v === k)).join('')}</select>`;
     else if (type === 'place') html += `<select id="f_${col}">${opt('', t('none'))}${places.map(p => opt(p.id, placeLabel(p), v === p.id)).join('')}</select>`;
@@ -882,10 +893,10 @@ async function saveEnt() {
     const v = $('f_' + col).value.trim();
     rec[col] = v === '' ? null : (type === 'number' ? Number(v) : v);
   }
-  if (curEnt === 'artists') { rec.code_prefix = (rec.code_prefix || '').toUpperCase() || null; if (rec.email) rec.email = rec.email.toLowerCase(); if (rec.commission_pct == null) rec.commission_pct = 0; }
+  if (curEnt === 'artists') { rec.code_prefix = (rec.code_prefix || '').toUpperCase() || null; if (rec.email) rec.email = rec.email.toLowerCase(); }
   if (E.owner) rec.artist_id = isAdmin ? ($('f_artist_id').value || null) : myArtist.id;
-  const req = curEnt === 'exhibitions' ? rec.title : rec.name;
-  if (!req || (curEnt === 'artists' && !rec.code_prefix) || (E.owner && !E.ownerOptional && !rec.artist_id)) { msg($('entMsg'), t('needname'), true); return; }
+  const miss = E.fields.find(([col]) => entReq(E, col) && !rec[col]);
+  if (miss || (E.owner && !E.ownerOptional && !rec.artist_id)) { markMissing(miss ? $('f_' + miss[0]) : $('f_artist_id')); msg($('entMsg'), t('needname'), true); return; }
   const r = entEditing ? await sb.from(E.table).update(rec).eq('id', entEditing.id).select().single() : await sb.from(E.table).insert(rec).select().single();
   if (r.error) { msg($('entMsg'), r.error.message, true); return; }
   if (curEnt === 'exhibitions') {
@@ -946,7 +957,7 @@ async function savePrint() {
   const rec = { work_id: pWork.id, medium: s('pMedium'), height_cm: readDim('pH'), width_cm: readDim('pW'),
     edition_size: num($('pEd').value), ap_count: num($('pAP').value), printed_count: num($('pPrinted').value), sold_count: num($('pSold').value),
     price_usd: num($('pPrice').value), printer: s('pPrinter'), print_date: $('pDate').value || null, notes: s('pNotes') };
-  if (!rec.medium && rec.edition_size == null) { msg($('pMsg'), t('needname'), true); return; }
+  if (!rec.medium && rec.edition_size == null) { markMissing($('pMedium')); $('pEd').classList.add('missing'); $('pEd').addEventListener('input', () => { $('pEd').classList.remove('missing'); $('pMedium').classList.remove('missing'); }, { once:true }); msg($('pMsg'), t('reqone'), true); return; }
   const r = pEditing ? await sb.from('print_editions').update(rec).eq('id', pEditing.id).select().single() : await sb.from('print_editions').insert(rec).select().single();
   if (r.error) { msg($('pMsg'), r.error.message, true); return; }
   await loadWorks(); pEditing = curEd(r.data.id); renderPrints(); msg($('pMsg'), t('saved'));
@@ -1057,7 +1068,7 @@ async function renderTeam() {
 }
 async function teamAdd() {
   const email = $('tEmail').value.trim().toLowerCase();
-  if (!/^\S+@\S+\.\S+$/.test(email)) { msg($('tMsg'), t('needname'), true); return; }
+  if (!/^\S+@\S+\.\S+$/.test(email)) { markMissing($('tEmail')); msg($('tMsg'), t('needname'), true); return; }
   const r = teamMode === 'admins' ? await sb.from('admins').insert({ email }) : await sb.from('artist_members').insert({ artist_id: teamArtist(), email });
   if (r.error) { msg($('tMsg'), r.error.message, true); return; }
   $('tEmail').value = ''; msg($('tMsg'), t('saved')); renderTeam();
