@@ -47,6 +47,9 @@
   .thumbs { display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; }
   .thumbs div { position:relative; } .thumbs img { width:90px; height:90px; object-fit:cover; border-radius:6px; border:1px solid var(--line); }
   .thumbs button { position:absolute; top:2px; right:2px; padding:0 6px; font-size:12px; }
+  .thumbs button.star { right:auto; left:2px; color:#b07a2a; }
+  .thumbs div.main img { outline:3px solid var(--accent); }
+  .thumbs .mainlbl { position:absolute; bottom:3px; left:3px; background:var(--accent); color:#fff; font-size:10px; padding:1px 5px; border-radius:4px; }
   .muted { color:var(--muted); font-size:13px; }
   .msg { padding:10px; border-radius:8px; background:#fff6e5; border:1px solid #f0d9a8; margin:10px 0; }
   .err { background:#fdecee; border-color:#f3bcc4; }
@@ -292,7 +295,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const T = {
   es: { email:'Correo', password:'Contraseña', signin:'Entrar', signup:'Crear cuenta', logout:'Salir', artists:'Artistas', import:'Importar',
-    works_t:'Obras', ap_short:'P/A', venueplace:'Lugar (sede)',  cms:'Centímetros', rateset:'Tipo de cambio: pesos por 1 dólar (vacío = automático)', rateauto:'automático', ratemanual:'fijado a mano', rateclick:'(tocar para cambiar)',  copies:'Ejemplares', gencopies:'Generar ejemplares (1…tiraje + P/A)', copy:'Ejemplar', cst_available:'Disponible', cst_reserved:'Reservado', cst_sold:'Vendido', cst_gift:'Regalo', cst_artist:'Del artista', needsize:'Primero indica el tiraje y guarda la edición.',  hires:'Fotos en alta resolución (enlace o carpeta)', open:'Abrir', hiresfolder:'Carpeta de fotos en alta resolución', hireshint:'Carpeta general del artista: ', prints:'Reproducciones', manageprints:'Ver / editar reproducciones', savefirst:'Guarda la obra primero para agregar reproducciones.', noprints:'Sin reproducciones.', editions:'ediciones', edition1:'edición', pmedium:'Técnica de impresión / soporte', pedition:'Tiraje (ejemplares)', pap:'Pruebas de artista (P/A)', pprinted:'Impresos hasta hoy', psold:'Vendidos', pprinter:'Taller / impresor', pdate:'Fecha de impresión', back:'Volver', available_n:'disponibles', newedition:'Nueva edición', editedition:'Editar edición',  team:'Equipo', admins:'Admins', add:'Agregar', remove:'Quitar', you:'(tú)', owner_t:'(artista)', teamhelp:'Personas que pueden manejar tu cuenta: ven y editan solo tus obras, lugares, clientes y exposiciones. Agrega su correo; luego ellas crean su cuenta en la app con ese mismo correo.', adminshelp:'Los administradores ven y manejan todo, de todos los artistas. Agrega su correo; luego crean su cuenta en la app con ese correo.', takephoto:'Tomar foto', choosephotos:'Elegir fotos', newphoto:'nueva', pickworks:'Obras en esta exposición', pickall:'Todas / ninguna', exhibitions:'Exposiciones', places:'Lugares', clients:'Clientes',
+    works_t:'Obras', mainphoto:'Principal', makemain:'Usar como foto principal (fichas y certificados)',  ap_short:'P/A', venueplace:'Lugar (sede)',  cms:'Centímetros', rateset:'Tipo de cambio: pesos por 1 dólar (vacío = automático)', rateauto:'automático', ratemanual:'fijado a mano', rateclick:'(tocar para cambiar)',  copies:'Ejemplares', gencopies:'Generar ejemplares (1…tiraje + P/A)', copy:'Ejemplar', cst_available:'Disponible', cst_reserved:'Reservado', cst_sold:'Vendido', cst_gift:'Regalo', cst_artist:'Del artista', needsize:'Primero indica el tiraje y guarda la edición.',  hires:'Fotos en alta resolución (enlace o carpeta)', open:'Abrir', hiresfolder:'Carpeta de fotos en alta resolución', hireshint:'Carpeta general del artista: ', prints:'Reproducciones', manageprints:'Ver / editar reproducciones', savefirst:'Guarda la obra primero para agregar reproducciones.', noprints:'Sin reproducciones.', editions:'ediciones', edition1:'edición', pmedium:'Técnica de impresión / soporte', pedition:'Tiraje (ejemplares)', pap:'Pruebas de artista (P/A)', pprinted:'Impresos hasta hoy', psold:'Vendidos', pprinter:'Taller / impresor', pdate:'Fecha de impresión', back:'Volver', available_n:'disponibles', newedition:'Nueva edición', editedition:'Editar edición',  team:'Equipo', admins:'Admins', add:'Agregar', remove:'Quitar', you:'(tú)', owner_t:'(artista)', teamhelp:'Personas que pueden manejar tu cuenta: ven y editan solo tus obras, lugares, clientes y exposiciones. Agrega su correo; luego ellas crean su cuenta en la app con ese mismo correo.', adminshelp:'Los administradores ven y manejan todo, de todos los artistas. Agrega su correo; luego crean su cuenta en la app con ese correo.', takephoto:'Tomar foto', choosephotos:'Elegir fotos', newphoto:'nueva', pickworks:'Obras en esta exposición', pickall:'Todas / ninguna', exhibitions:'Exposiciones', places:'Lugares', clients:'Clientes',
     new:'+ Nueva obra', selectall:'Seleccionar todo', clearsel:'Quitar selección', printcards:'Fichas', printcoas:'Certificados', pricelist:'Lista de precios',
     artist:'Artista', title:'Título', year:'Año', code:'Código', technique:'Técnica', support:'Soporte',
     height:'Alto (cm)', width:'Ancho (cm)', depth:'Fondo (cm)', fheight:'Alto con marco (cm)', fwidth:'Ancho con marco (cm)', fdepth:'Fondo con marco (cm)',
@@ -315,7 +318,7 @@ const T = {
     importfiles:'Fotos', importrun:'Importar', importdone:'Listo: {n} obras importadas.', importexists:'Este artista ya tiene obras; no se importó nada.',
     inches:'Pulgadas', unique:'Única' },
   en: { email:'Email', password:'Password', signin:'Sign in', signup:'Create account', logout:'Sign out', artists:'Artists', import:'Import',
-    works_t:'Works', ap_short:'AP', venueplace:'Place (venue)',  cms:'Centimeters', rateset:'Exchange rate: pesos per 1 dollar (empty = automatic)', rateauto:'automatic', ratemanual:'set by hand', rateclick:'(tap to change)',  copies:'Copies', gencopies:'Create copies (1…edition + AP)', copy:'Copy', cst_available:'Available', cst_reserved:'Reserved', cst_sold:'Sold', cst_gift:'Gift', cst_artist:'Artist’s', needsize:'First enter the edition size and save the edition.',  hires:'High-res photos (link or folder)', open:'Open', hiresfolder:'High-res photos folder', hireshint:'Artist’s general folder: ', prints:'Prints', manageprints:'View / edit prints', savefirst:'Save the work first to add prints.', noprints:'No prints.', editions:'editions', edition1:'edition', pmedium:'Print technique / support', pedition:'Edition size', pap:'Artist’s proofs (AP)', pprinted:'Printed so far', psold:'Sold', pprinter:'Print studio', pdate:'Print date', back:'Back', available_n:'available', newedition:'New edition', editedition:'Edit edition',  team:'Team', admins:'Admins', add:'Add', remove:'Remove', you:'(you)', owner_t:'(artist)', teamhelp:'People who can manage your account: they see and edit only your works, places, clients and exhibitions. Add their email; then they create their account in the app with that same email.', adminshelp:'Admins see and manage everything, for every artist. Add their email; then they create their account in the app with that email.', takephoto:'Take photo', choosephotos:'Choose photos', newphoto:'new', pickworks:'Works in this exhibition', pickall:'All / none', exhibitions:'Exhibitions', places:'Places', clients:'Clients',
+    works_t:'Works', mainphoto:'Main', makemain:'Use as main photo (cards and certificates)',  ap_short:'AP', venueplace:'Place (venue)',  cms:'Centimeters', rateset:'Exchange rate: pesos per 1 dollar (empty = automatic)', rateauto:'automatic', ratemanual:'set by hand', rateclick:'(tap to change)',  copies:'Copies', gencopies:'Create copies (1…edition + AP)', copy:'Copy', cst_available:'Available', cst_reserved:'Reserved', cst_sold:'Sold', cst_gift:'Gift', cst_artist:'Artist’s', needsize:'First enter the edition size and save the edition.',  hires:'High-res photos (link or folder)', open:'Open', hiresfolder:'High-res photos folder', hireshint:'Artist’s general folder: ', prints:'Prints', manageprints:'View / edit prints', savefirst:'Save the work first to add prints.', noprints:'No prints.', editions:'editions', edition1:'edition', pmedium:'Print technique / support', pedition:'Edition size', pap:'Artist’s proofs (AP)', pprinted:'Printed so far', psold:'Sold', pprinter:'Print studio', pdate:'Print date', back:'Back', available_n:'available', newedition:'New edition', editedition:'Edit edition',  team:'Team', admins:'Admins', add:'Add', remove:'Remove', you:'(you)', owner_t:'(artist)', teamhelp:'People who can manage your account: they see and edit only your works, places, clients and exhibitions. Add their email; then they create their account in the app with that same email.', adminshelp:'Admins see and manage everything, for every artist. Add their email; then they create their account in the app with that email.', takephoto:'Take photo', choosephotos:'Choose photos', newphoto:'new', pickworks:'Works in this exhibition', pickall:'All / none', exhibitions:'Exhibitions', places:'Places', clients:'Clients',
     new:'+ New work', selectall:'Select all', clearsel:'Clear', printcards:'Cards', printcoas:'Certificates', pricelist:'Price list',
     artist:'Artist', title:'Title', year:'Year', code:'Code', technique:'Technique', support:'Support',
     height:'Height (cm)', width:'Width (cm)', depth:'Depth (cm)', fheight:'Framed height (cm)', fwidth:'Framed width (cm)', fdepth:'Framed depth (cm)',
@@ -654,7 +657,21 @@ function renderPending() {
 function addPending(files) { for (const f of files) pending.push({ file: f, url: URL.createObjectURL(f) }); renderPending(); }
 function renderThumbs() {
   const ps = editing?.photos || [];
-  $('eThumbs').innerHTML = ps.map(p => `<div><img src="${photoUrl(p.path)}"><button data-pid="${p.id}">✕</button></div>`).join('');
+  $('eThumbs').innerHTML = ps.map((p, i) => i === 0
+    ? `<div class="main"><img src="${photoUrl(p.path)}"><span class="mainlbl">★ ${t('mainphoto')}</span><button data-pid="${p.id}">✕</button></div>`
+    : `<div><img src="${photoUrl(p.path)}"><button class="star" data-star="${p.id}" title="${t('makemain')}">☆</button><button data-pid="${p.id}">✕</button></div>`).join('');
+}
+async function makeMainPhoto(pid) {
+  const ps = editing.photos;
+  const order = [ps.find(x => x.id === pid), ...ps.filter(x => x.id !== pid)];
+  for (let i = 0; i < order.length; i++) {
+    if (order[i].sort === i) continue;
+    const r = await sb.from('photos').update({ sort: i }).eq('id', order[i].id);
+    if (r.error) { msg($('eMsg'), r.error.message, true); return; }
+    order[i].sort = i;
+  }
+  editing.photos = order;
+  renderThumbs(); loadWorks();
 }
 async function saveWork(stay = false) {
   const title = $('eTitle').value.trim();
@@ -1125,7 +1142,7 @@ $('btnPick').onclick = () => $('eFiles').click();
 $('eCam').onchange = e => { addPending([...e.target.files]); e.target.value = ''; };
 $('eFiles').onchange = e => { addPending([...e.target.files]); e.target.value = ''; };
 $('ePending').onclick = e => { const i = e.target.dataset?.pend; if (i != null) { URL.revokeObjectURL(pending[i].url); pending.splice(+i, 1); renderPending(); } };
-$('eThumbs').onclick = e => { const id = e.target.dataset?.pid; if (id) deletePhoto(id); };
+$('eThumbs').onclick = e => { const id = e.target.dataset?.pid; if (id) deletePhoto(id); const st = e.target.dataset?.star; if (st) makeMainPhoto(st); };
 ['fArtist','fStatus','fPlace','fExh'].forEach(id => $(id).onchange = renderList);
 $('fText').oninput = renderList;
 $('fOwnerBox').onclick = e => { if (e.target.id === 'clrOwner') { fOwner = null; renderList(); } };
