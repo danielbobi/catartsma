@@ -46,6 +46,8 @@
   .work .t { font-weight:600; font-size:14px; }
   .work .sel { position:absolute; top:8px; left:8px; width:26px; height:26px; accent-color:var(--accent); cursor:pointer; }
   .badge { display:inline-block; padding:1px 7px; border-radius:10px; font-size:11px; background:#eee; }
+  .badge.b-onexh { background:#dbe7f7; color:#1d4e89; margin-top:4px; white-space:normal; }
+  .pick span.a { color:var(--muted); padding-top:0; }
   .b-available{background:#e3f1e5;color:#1d6b2c} .b-reserved{background:#fff1d6;color:#8a5a00} .b-sold{background:#f6dcdc;color:#9b1c1c} .b-loan{background:#e1e9f7;color:#244c8a}
   .panel { background:#fff; border:1px solid var(--line); border-radius:12px; padding:14px; max-width:760px; margin:0 auto 14px; }
   .bulk { background:#fff7ec; border:1px solid #ecd3ad; border-radius:10px; padding:10px; margin-bottom:12px; }
@@ -321,7 +323,7 @@ const T = {
     start:'Inicio', end:'Fin', opening:'Inauguración', curator:'Curador(a)', nworks:'Obras', show:'Ver obras', edit:'Editar',
     newwork:'Nueva obra', editwork:'Editar obra', addnew:'+ Nuevo', editing:'Editar',
     allartists:'Todos los artistas', allstatus:'Todos los estados', allplaces:'Todos los lugares', allexh:'Todas las exposiciones', search:'Buscar…',
-    works:'obras', selected:'seleccionadas', none:'—', ownerf:'Propietario', groupshow:'(colectiva)',
+    works:'obras', selected:'seleccionadas', none:'—', ownerf:'Propietario', groupshow:'(colectiva)', exprint:'Imprimir de esta exposición', exprintall:'Todas las obras marcadas', onexh:'En exposición', onexhnow:'En exposición ahora', until:'hasta',
     st_available:'Disponible', st_reserved:'Reservada', st_sold:'Vendida', st_loan:'En préstamo',
     k_studio:'Estudio', k_gallery:'Galería', k_storage:'Bodega', k_venue:'Sede de exposición', k_client:'Casa de cliente', k_other:'Otro',
     h_location:'Lugar', h_owner:'Propietario', h_status:'Estado',
@@ -344,7 +346,7 @@ const T = {
     start:'Start', end:'End', opening:'Opening', curator:'Curator', nworks:'Works', show:'Show works', edit:'Edit',
     newwork:'New work', editwork:'Edit work', addnew:'+ New', editing:'Edit',
     allartists:'All artists', allstatus:'All statuses', allplaces:'All places', allexh:'All exhibitions', search:'Search…',
-    works:'works', selected:'selected', none:'—', ownerf:'Owner', groupshow:'(group show)',
+    works:'works', selected:'selected', none:'—', ownerf:'Owner', groupshow:'(group show)', exprint:'Print from this exhibition', exprintall:'All ticked works', onexh:'On exhibit', onexhnow:'On exhibit now', until:'until',
     st_available:'Available', st_reserved:'Reserved', st_sold:'Sold', st_loan:'On loan',
     k_studio:'Studio', k_gallery:'Gallery', k_storage:'Storage', k_venue:'Exhibition venue', k_client:'Client’s home', k_other:'Other',
     h_location:'Place', h_owner:'Owner', h_status:'Status',
@@ -411,6 +413,11 @@ function dimsTxt(d, both = true) {
 }
 const photoUrl = p => sb.storage.from('photos').getPublicUrl(p).data.publicUrl;
 const opt = (v, label, sel) => `<option value="${esc(v)}"${sel ? ' selected' : ''}>${esc(label)}</option>`;
+const todayISO = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+function activeExh(w) {
+  const today = todayISO();
+  return exhibitions.filter(e => w.exh.includes(e.id)).filter(e => { const st = e.start_date || e.opening_date; return st && st <= today && (!e.end_date || e.end_date >= today); });
+}
 const fmtDate = d => d ? new Date(d.length === 10 ? d + 'T12:00:00' : d).toLocaleDateString(lang === 'es' ? 'es-MX' : 'en-US', { year:'numeric', month:'long', day:'numeric' }) : '';
 function dims(a, b, c) { return [a, b, c].filter(x => x != null && x !== ''); }
 function sizeText(w, withIn = true, framed = false) {
@@ -553,7 +560,7 @@ function toggleLang() { lang = lang === 'es' ? 'en' : 'es'; try { localStorage.s
 function fillFilters() {
   const fa = $('fArtist').value, fs = $('fStatus').value, fp = $('fPlace').value, fe = $('fExh').value;
   $('fArtist').innerHTML = opt('', t('allartists')) + artists.map(a => opt(a.id, a.name)).join(''); $('fArtist').value = fa;
-  $('fStatus').innerHTML = opt('', t('allstatus')) + STATUSES.map(s => opt(s, t('st_'+s))).join(''); $('fStatus').value = fs;
+  $('fStatus').innerHTML = opt('', t('allstatus')) + STATUSES.map(s => opt(s, t('st_'+s))).join('') + opt('_onexh', t('onexhnow')); $('fStatus').value = fs;
   $('fPlace').innerHTML = opt('', t('allplaces')) + places.map(p => opt(p.id, placeLabel(p))).join(''); $('fPlace').value = fp;
   $('fExh').innerHTML = opt('', t('allexh')) + exhibitions.map(e => opt(e.id, e.title)).join(''); $('fExh').value = fe;
   $('bPlace').innerHTML = opt('', t('nochange')) + places.map(p => opt(p.id, placeLabel(p))).join('');
@@ -566,7 +573,7 @@ function fillFilters() {
 function goWorks() { setNav('works'); renderList(); show('vList'); }
 function filtered() {
   const fa = $('fArtist').value, fs = $('fStatus').value, fp = $('fPlace').value, fe = $('fExh').value, q = $('fText').value.trim().toLowerCase();
-  return works.filter(w => (!fa || w.artist_id === fa) && (!fs || w.status === fs) && (!fp || w.place_id === fp) &&
+  return works.filter(w => (!fa || w.artist_id === fa) && (!fs || (fs === '_onexh' ? activeExh(w).length > 0 : w.status === fs)) && (!fp || w.place_id === fp) &&
     (!fe || w.exh.includes(fe)) && (!fOwner || w.owner_client_id === fOwner) &&
     (!q || [w.title, w.code, w.technique, w.artists?.name, placeName(w.place_id), clientName(w.owner_client_id)].join(' ').toLowerCase().includes(q)));
 }
@@ -589,7 +596,8 @@ function renderList() {
       <div class="muted">${esc(w.code || '')}${isAdmin && w.artists ? ' · ' + esc(w.artists.name) : ''}</div>
       <div>${esc(sizeText(w, false))}</div>
       <div class="muted">${esc(placeName(w.place_id))}${w.owner_client_id ? ' · ' + esc(clientName(w.owner_client_id)) : ''}</div>
-      <div>${money(w.price_usd)} <span class="badge b-${w.status}">${t('st_' + w.status)}</span>${w.eds.length ? ` <span class="badge">🖨 ${w.eds.length} ${w.eds.length === 1 ? t('edition1') : t('editions')}</span>` : ''}</div></div></div>`;
+      <div>${money(w.price_usd)} <span class="badge b-${w.status}">${t('st_' + w.status)}</span>${w.eds.length ? ` <span class="badge">🖨 ${w.eds.length} ${w.eds.length === 1 ? t('edition1') : t('editions')}</span>` : ''}</div>
+      ${activeExh(w).map(e => `<div><span class="badge b-onexh">🖼 ${t('onexh')}: ${esc(e.title)}${e.venue ? ' · ' + esc(e.venue) : ''}${e.end_date ? ' · ' + t('until') + ' ' + esc(fmtDate(e.end_date)) : ''}</span></div>`).join('')}</div></div>`;
   }).join('');
 }
 async function applyBulk() {
@@ -739,8 +747,8 @@ async function deleteWork() {
 }
 
 // ---------- printing ----------
-function printWindow(head, body) {
-  const w = window.open('', '_blank'); if (!w) return;
+function printWindow(head, body, win) {
+  const w = win || window.open('', '_blank'); if (!w) return;
   w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Mira</title>${head}</head><body>${body}
   <script>window.onload=()=>{const imgs=[...document.images];Promise.all(imgs.map(i=>i.complete?1:new Promise(r=>{i.onload=i.onerror=r}))).then(()=>setTimeout(()=>window.print(),300));}<\/script></body></html>`);
   w.document.close();
@@ -809,14 +817,27 @@ async function printCoas(list) {
   const toMark = list.filter(w => !w.coa_issued).map(w => w.id);
   if (toMark.length) { await sb.from('works').update({ coa_issued: today }).in('id', toMark); loadWorks(); }
 }
-function printPriceList(list) {
+// small copies of photos for the price list, so the PDF stays light (they print 2.2 cm wide)
+async function smallPhoto(path, max = 320) {
+  try {
+    const img = await new Promise((res, rej) => { const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => res(i); i.onerror = rej; i.src = photoUrl(path); });
+    const s = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+    const c = document.createElement('canvas'); c.width = Math.round(img.naturalWidth * s); c.height = Math.round(img.naturalHeight * s);
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    return c.toDataURL('image/jpeg', 0.85);
+  } catch (e) { return photoUrl(path); }
+}
+async function printPriceList(list, exOverride) {
   if (!list.length) { alert(t('nothingsel')); return; }
-  const ex = exhibitions.find(e => e.id === $('fExh').value);
+  const win = window.open('', '_blank'); if (win) win.document.write('<p style="font-family:Arial">…</p>');
+  const thumbs = {}; await Promise.all(list.filter(w => w.photos[0]).map(async w => { thumbs[w.id] = await smallPhoto(w.photos[0].path); }));
+  const ex = exOverride || exhibitions.find(e => e.id === $('fExh').value);
   const head = `<style>@page{size:letter;margin:1.5cm} body{font-family:Arial,sans-serif;font-size:10pt} table{width:100%;border-collapse:collapse} td,th{border-bottom:1px solid #ccc;padding:5px;text-align:left;vertical-align:middle} img{width:2.2cm;height:2.2cm;object-fit:contain} th{font-size:9pt;color:#555}</style>`;
   const body = `<h2>${esc(ex ? ex.title : 'Mira')}</h2>${ex ? `<p>${esc([ex.venue, ex.city].filter(Boolean).join(', '))}${ex.start_date ? ' · ' + fmtDate(ex.start_date) : ''}${ex.end_date ? ' – ' + fmtDate(ex.end_date) : ''}</p>` : ''}
     <table><tr><th></th><th>${t('code')}</th><th>${t('title')}</th><th>${t('technique')}</th><th>${unit === 'in' ? 'in / cm' : 'cm / in'}</th><th>${priceHdr()}</th><th>${t('status')}</th></tr>` +
-    list.map(w => `<tr><td>${w.photos[0] ? `<img src="${photoUrl(w.photos[0].path)}">` : ''}</td><td>${esc(w.code||'')}</td><td><b>${esc(w.title)}</b>${w.year ? ', ' + w.year : ''}${isAdmin && w.artists ? '<br>' + esc(w.artists.name) : ''}</td><td>${esc(w.technique||'')}</td><td>${esc(sizeText(w))}</td><td>${money(w.price_usd)}</td><td>${t('st_'+w.status)}</td></tr>`).join('') + '</table>';
-  printWindow(head, body);
+    list.map(w => `<tr><td>${w.photos[0] ? `<img src="${thumbs[w.id]}">` : ''}</td><td>${esc(w.code||'')}</td><td><b>${esc(w.title)}</b>${w.year ? ', ' + w.year : ''}${isAdmin && w.artists ? '<br>' + esc(w.artists.name) : ''}</td><td>${esc(w.technique||'')}</td><td>${esc(sizeText(w))}</td><td>${money(w.price_usd)}</td><td>${t('st_'+w.status)}</td></tr>`).join('') + '</table>';
+  if (win) win.document.open();
+  printWindow(head, body, win);
 }
 
 // ---------- generic lists ----------
@@ -847,9 +868,17 @@ function pickList() {
 function renderPick() {
   const l = pickList();
   $('exPick').innerHTML = l.map(w => `<label class="${pickSel.has(w.id) ? 'on' : ''}"><input type="checkbox" value="${w.id}" ${pickSel.has(w.id) ? 'checked' : ''}>
-    ${w.photos[0] ? `<img loading="lazy" src="${photoUrl(w.photos[0].path)}">` : '<div class="noimg"></div>'}<span>${esc(w.title)}</span></label>`).join('') || `<span class="muted">${t('none')}</span>`;
+    ${w.photos[0] ? `<img loading="lazy" src="${photoUrl(w.photos[0].path)}">` : '<div class="noimg"></div>'}<span>${esc(w.title)}</span>${isAdmin && !($('f_artist_id')?.value) && w.artists ? `<span class="a">${esc(w.artists.name)}</span>` : ''}</label>`).join('') || `<span class="muted">${t('none')}</span>`;
   $('pickCount').textContent = `(${pickSel.size})`;
+  renderExPrint();
 }
+const exPicked = () => works.filter(w => pickSel.has(w.id));
+function renderExPrint() {
+  const sel = $('exPrintSel'); if (!sel) return; const cur = sel.value, l = exPicked();
+  sel.innerHTML = opt('', `${t('exprintall')} (${l.length})`) + l.map(w => opt(w.id, [w.code, w.title].filter(Boolean).join(' · '))).join('');
+  if (l.some(w => w.id === cur)) sel.value = cur;
+}
+function exPrintList() { const id = $('exPrintSel').value; return id ? exPicked().filter(w => w.id === id) : exPicked(); }
 function resetFilters() { ['fArtist','fStatus','fPlace','fExh','fText'].forEach(id => $(id).value = ''); fOwner = null; }
 const entRows = name => ({ exhibitions, places, clients, artists })[name];
 function goEnt(name) { curEnt = name; entEditing = null; setNav(name); renderEnt(); show('vEnt'); }
@@ -876,7 +905,8 @@ function renderEntForm() {
   $('entFormHead').textContent = entEditing ? `${t('editing')}: ${entEditing.name || entEditing.title}` : t('addnew').replace('+ ', '');
   let html = '';
   if (E.owner && isAdmin) {
-    html += `<label${E.ownerOptional ? '' : ' class="req"'}>${t('artist')}</label><select id="f_artist_id">${E.ownerOptional ? opt('', t('groupshow')) : ''}${artists.map(a => opt(a.id, a.name, r.artist_id === a.id)).join('')}</select>`;
+    const defA = entEditing ? (r.artist_id || '') : ($('fArtist').value || artists[0]?.id || '');
+    html += `<label${E.ownerOptional ? '' : ' class="req"'}>${t('artist')}</label><select id="f_artist_id">${artists.map(a => opt(a.id, a.name, defA === a.id)).join('')}${E.ownerOptional ? opt('', t('groupshow'), defA === '') : ''}</select>`;
   }
   for (const [col, lab, type] of E.fields) {
     const v = r[col] ?? '';
@@ -886,14 +916,20 @@ function renderEntForm() {
     else if (type === 'place') html += `<select id="f_${col}">${opt('', t('none'))}${places.map(p => opt(p.id, placeLabel(p), v === p.id)).join('')}</select>`;
     else html += `<input id="f_${col}" type="${type}" value="${esc(v)}">`;
   }
-  if (curEnt === 'exhibitions') html += `<label>${t('pickworks')} <span id="pickCount"></span></label><div class="toolbar" style="margin:0 0 6px"><button type="button" id="pickAll">${t('pickall')}</button></div><div class="pick" id="exPick"></div>`;
+  if (curEnt === 'exhibitions') html += `<label>${t('pickworks')} <span id="pickCount"></span></label><div class="toolbar" style="margin:0 0 6px"><button type="button" id="pickAll">${t('pickall')}</button></div><div class="pick" id="exPick"></div>
+    <div class="panel" style="margin-top:12px;padding:10px"><label style="margin-top:0">${t('exprint')}</label><select id="exPrintSel"></select>
+    <div class="toolbar" style="margin-top:8px"><button type="button" id="exPrCards">${t('printcards')}</button><button type="button" id="exPrCoas">${t('printcoas')}</button><button type="button" id="exPrList">${t('pricelist')}</button></div></div>`;
   $('entForm').innerHTML = html;
   if (curEnt === 'exhibitions') {
     pickSel = new Set(entEditing ? works.filter(w => w.exh.includes(entEditing.id)).map(w => w.id) : []);
     renderPick();
-    if ($('f_artist_id')) $('f_artist_id').onchange = renderPick;
+    if ($('f_artist_id')) $('f_artist_id').onchange = () => { const ok = new Set(pickList().map(w => w.id)); [...pickSel].forEach(id => ok.has(id) || pickSel.delete(id)); renderPick(); };
     $('pickAll').onclick = () => { const l = pickList(); const all = l.length && l.every(w => pickSel.has(w.id)); l.forEach(w => all ? pickSel.delete(w.id) : pickSel.add(w.id)); renderPick(); };
-    $('exPick').onchange = e => { const id = e.target.value; e.target.checked ? pickSel.add(id) : pickSel.delete(id); e.target.closest('label').classList.toggle('on', e.target.checked); $('pickCount').textContent = `(${pickSel.size})`; };
+    $('exPick').onchange = e => { const id = e.target.value; e.target.checked ? pickSel.add(id) : pickSel.delete(id); e.target.closest('label').classList.toggle('on', e.target.checked); $('pickCount').textContent = `(${pickSel.size})`; renderExPrint(); };
+    $('exPrCards').onclick = () => printCards(exPrintList());
+    $('exPrCoas').onclick = () => printCoas(exPrintList());
+    $('exPrList').onclick = () => { const v = id => ($('f_' + id)?.value || '').trim();
+      printPriceList(exPrintList(), { title: v('title') || 'Mira', venue: v('venue'), city: v('city'), start_date: v('start_date'), end_date: v('end_date') }); };
   }
   $('btnEntDel').classList.toggle('hidden', !entEditing);
   msg($('entMsg'), '');
