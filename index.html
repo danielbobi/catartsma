@@ -39,12 +39,19 @@
   .toolbar select, .toolbar input { width:auto; min-width:120px; flex:1; }
   .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; }
   .work { background:var(--card); border:1px solid var(--line); border-radius:10px; overflow:hidden; cursor:pointer; position:relative; }
-  .work.on { outline:3px solid var(--accent); }
+  .work.on { outline:2px solid var(--accent); }
   .work img, .work .noimg { width:100%; aspect-ratio:1; object-fit:contain; background:#f1efea; display:block; }
   .work .noimg { display:flex; align-items:center; justify-content:center; color:var(--muted); }
   .work .info { padding:8px 10px; font-size:13px; }
   .work .t { font-weight:600; font-size:14px; }
-  .work .sel { position:absolute; top:8px; left:8px; width:26px; height:26px; accent-color:var(--accent); cursor:pointer; }
+  .work .sel, .pick input { appearance:none; -webkit-appearance:none; position:absolute; top:6px; left:6px; width:18px; height:18px; margin:0; padding:0;
+    border:1.5px solid rgba(255,255,255,.95); border-radius:50%; background:rgba(0,0,0,.18); box-shadow:0 0 0 1px rgba(0,0,0,.25);
+    cursor:pointer; opacity:.55; transition:opacity .15s, background .15s; }
+  .work:hover .sel, .pick label:hover input { opacity:1; }
+  .work .sel:checked, .pick input:checked { opacity:1; background:var(--accent); border-color:#fff;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 8.5l2.5 2.5L12 5.5' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-size:100% 100%; }
+  .work .sel::before, .pick input::before { content:''; position:absolute; inset:-10px; }
   .badge { display:inline-block; padding:1px 7px; border-radius:10px; font-size:11px; background:#eee; }
   .badge.b-onexh { background:#dbe7f7; color:#1d4e89; margin-top:4px; white-space:normal; }
   .pick span.a { color:var(--muted); padding-top:0; }
@@ -71,9 +78,8 @@
   .chip button { border:0; background:none; padding:0 2px; }
   .pick { display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:8px; max-height:420px; overflow:auto; padding:4px; border:1px solid var(--line); border-radius:8px; }
   .pick label { display:block; margin:0; position:relative; border:1px solid var(--line); border-radius:8px; overflow:hidden; color:var(--ink); font-size:12px; cursor:pointer; background:#fff; }
-  .pick label.on { outline:3px solid var(--accent); }
+  .pick label.on { outline:2px solid var(--accent); }
   .pick img, .pick .noimg { width:100%; aspect-ratio:1; object-fit:contain; background:#f1efea; display:block; }
-  .pick input { position:absolute; top:5px; left:5px; width:20px; height:20px; accent-color:var(--accent); }
   .pick span { display:block; padding:4px 6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   #cTable select, #cTable input { width:auto; min-width:8.5em; padding:6px 8px; }
   #cTable input[type=number] { min-width:6em; } #cTable input[type=checkbox] { min-width:0; width:20px; height:20px; }
